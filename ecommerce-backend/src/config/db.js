@@ -1,0 +1,32 @@
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/naananaa';
+  const directUri = process.env.MONGODB_URI_DIRECT;
+
+  const connectWithUri = async (candidateUri) => {
+    await mongoose.connect(candidateUri, { useNewUrlParser: true, useUnifiedTopology: true });
+  };
+
+  try {
+    await connectWithUri(uri);
+    console.log('MongoDB connected');
+  } catch (err) {
+    if (directUri && directUri !== uri) {
+      try {
+        console.warn('Primary MongoDB URI failed. Retrying with direct host URI...');
+        await connectWithUri(directUri);
+        console.log('MongoDB connected (direct host URI)');
+        return;
+      } catch (directErr) {
+        console.error('MongoDB connection error (direct URI):', directErr.message);
+        process.exit(1);
+      }
+    }
+
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;
