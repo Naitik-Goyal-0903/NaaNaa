@@ -8,15 +8,23 @@ const Template = require('./src/models/Template');
 
 dotenv.config();
 
+const requireEnv = (name, fallback = "") => {
+  const value = String(process.env[name] || fallback).trim();
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+};
+
 const seed = async () => {
   try {
     await connectDB();
     console.log('✓ Database connected');
     
     // create admin
-    const ADMIN_USERNAME = 'NaitikNitya';
-    const ADMIN_PASS = '13022025';
-    const ADMIN_EMAIL = 'admin@naananaa.local';
+    const ADMIN_USERNAME = requireEnv('SEED_ADMIN_USERNAME', 'admin');
+    const ADMIN_PASS = requireEnv('SEED_ADMIN_PASSWORD');
+    const ADMIN_EMAIL = requireEnv('SEED_ADMIN_EMAIL', 'admin@naananaa.local');
     let admin = await User.findOne({ username: ADMIN_USERNAME });
     if (!admin) {
       const hashed = await bcrypt.hash(ADMIN_PASS, 10);
@@ -158,10 +166,17 @@ const seed = async () => {
     process.exit(0);
   } catch (err) {
     console.error('\n❌ Database error:', err.message);
-    console.error('\n⚠️  MongoDB is not running. To set up:');
-    console.error('  Option 1: Install MongoDB & run mongod');
-    console.error('  Option 2: Use Docker: docker run -d -p 27017:27017 --name mongodb mongo:latest');
-    console.error('  Option 3: Use MongoDB Atlas: Update MONGODB_URI in .env with your connection string');
+    if (String(err.message || '').includes('Missing required environment variable')) {
+      console.error('\n⚠️  Add seed admin credentials in .env before running seed:');
+      console.error('  SEED_ADMIN_USERNAME=admin');
+      console.error('  SEED_ADMIN_PASSWORD=your_strong_password');
+      console.error('  SEED_ADMIN_EMAIL=admin@naananaa.local');
+    } else {
+      console.error('\n⚠️  MongoDB is not running. To set up:');
+      console.error('  Option 1: Install MongoDB & run mongod');
+      console.error('  Option 2: Use Docker: docker run -d -p 27017:27017 --name mongodb mongo:latest');
+      console.error('  Option 3: Use MongoDB Atlas: Update MONGODB_URI in .env with your connection string');
+    }
     mongoose.disconnect();
     process.exit(1);
   }

@@ -31,5 +31,5 @@ API endpoints:
 - `GET /api/products` — list products
 
 Notes:
-- Admin seeded with username `NaitikNitya` and password `13022025`.
-- This is a demo; move admin credential checks and JWT secret to secure server environments when deploying.
+- Admin seed credentials come from `.env` variables: `SEED_ADMIN_USERNAME`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_EMAIL`.
+- Never commit real credentials or production JWT secrets to GitHub.
