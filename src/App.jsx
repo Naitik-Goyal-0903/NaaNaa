@@ -222,6 +222,22 @@ const normalizeTemplateList = (templates = []) => (
     : []
 );
 
+const mapApiOfferToUi = (offer = {}) => {
+  const buyProduct = offer.buyProduct ? mapApiProductToUi(offer.buyProduct) : null;
+  const getProduct = offer.getProduct ? mapApiProductToUi(offer.getProduct) : null;
+  if (!buyProduct || !getProduct) return null;
+
+  return {
+    _id: offer._id || offer.id || `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    id: offer._id || offer.id || `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    title: String(offer.title || '').trim(),
+    type: offer.type || 'BUY_X_GET_Y',
+    active: offer.active !== false,
+    buyProduct,
+    getProduct
+  };
+};
+
 // ─── TOAST ───────────────────────────────────────────────────────────────────
 const Toast = ({ show, message, onClose }) => {
   useEffect(() => { if (show) { const t = setTimeout(onClose, 2200); return () => clearTimeout(t); } }, [show]);
@@ -694,6 +710,7 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState(PRODUCTS); // Start with sample data, will be replaced by API
+  const [offers, setOffers] = useState([]);
   const [catalogFilters, setCatalogFilters] = useState({ category: "All", priceMax: 100000, sort: "popular" });
   const [viewMode, setViewMode] = useState("grid");
   const [darkMode, setDarkMode] = useState(false);
@@ -734,6 +751,28 @@ export default function App() {
     };
     loadTemplates();
   }, []);
+
+  const loadOffers = useCallback(async (adminView = false) => {
+    try {
+      const endpoint = adminView ? `${API_BASE}/offers/admin` : `${API_BASE}/offers`;
+      const headers = adminView
+        ? { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }
+        : undefined;
+      const response = await fetch(endpoint, { headers });
+      if (!response.ok) return;
+      const data = await response.json();
+      const normalized = Array.isArray(data)
+        ? data.map(mapApiOfferToUi).filter(Boolean)
+        : [];
+      setOffers(normalized);
+    } catch (error) {
+      // keep UI working with empty offers state
+    }
+  }, []);
+
+  useEffect(() => {
+    loadOffers(false);
+  }, [loadOffers]);
 
   useEffect(() => {
     if (page !== "home" || heroTemplates.length === 0) return;
@@ -1010,6 +1049,7 @@ export default function App() {
   }), [products, wishlist, deferredCatalogFilters]);
 
   const recentProducts = useMemo(() => [...products].reverse().slice(0, 4), [products]);
+  const activeOffers = useMemo(() => offers.filter((offer) => offer.active !== false), [offers]);
   const homeCollections = useMemo(() => (
     ["Women's", "Accessories"].map((category) => ({
       category,
@@ -1179,6 +1219,7 @@ export default function App() {
             </button>
           </>
         )}
+        <button style={{ ...styles.btn(false), padding: "6px 12px", fontSize: 12 }} onClick={() => navigate("offers")}>Offers</button>
         <button style={{
           ...styles.iconBtn,
           width: isMobile ? 40 : "auto",
@@ -1401,6 +1442,46 @@ export default function App() {
           </div>
         </div>
 
+        {/* Offers Section */}
+        {activeOffers.length > 0 && (
+          <div style={{ padding: isMobile ? "26px 14px" : "44px 24px", maxWidth: 1200, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <h2 style={styles.sectionTitle}>Special Offers</h2>
+              <button
+                style={{ ...styles.btn(false), fontSize: 13, padding: "8px 16px" }}
+                onClick={() => navigate("offers")}
+              >
+                View All Offers
+              </button>
+            </div>
+            <p style={styles.sectionSub}>Buy 1 + Get 1 combos curated by admin</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+              {activeOffers.slice(0, 4).map((offer) => (
+                <div key={offer.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: T.accent, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+                    {offer.title || "Buy 1 + Get 1"}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ width: 62, height: 62, margin: "0 auto 6px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
+                        {renderProductMedia(offer.buyProduct.image, 52)}
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{offer.buyProduct.name}</div>
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: T.accent }}>+</div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ width: 62, height: 62, margin: "0 auto 6px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
+                        {renderProductMedia(offer.getProduct.image, 52)}
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{offer.getProduct.name}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Recently Added Section */}
         <div style={{ padding: isMobile ? "28px 14px" : "56px 24px", maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
@@ -1613,6 +1694,48 @@ export default function App() {
     </div>
   );
 
+  const OffersPage = () => (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: pagePadding }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <h1 style={{ ...styles.sectionTitle, fontSize: isMobile ? 28 : 34 }}>Offers</h1>
+        <button style={{ ...styles.btn(false), padding: "8px 16px", fontSize: 13 }} onClick={() => navigate("catalog")}>Shop Products</button>
+      </div>
+      <p style={styles.sectionSub}>{activeOffers.length} offer(s) available</p>
+      {activeOffers.length === 0 ? (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 22, color: T.muted }}>
+          No active offers right now.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18 }}>
+          {activeOffers.map((offer) => (
+            <div key={offer.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16 }}>
+              <div style={{ display: "inline-block", marginBottom: 10, background: T.input, color: T.accent, borderRadius: 999, padding: "5px 10px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8 }}>
+                {offer.title || "Buy 1 + Get 1"}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 12 }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ width: 80, height: 80, margin: "0 auto 8px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
+                    {renderProductMedia(offer.buyProduct.image, 68)}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{offer.buyProduct.name}</div>
+                  <div style={{ fontSize: 12, color: T.accent }}>{formatPrice(offer.buyProduct.price)}</div>
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: T.accent }}>+</div>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ width: 80, height: 80, margin: "0 auto 8px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
+                    {renderProductMedia(offer.getProduct.image, 68)}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{offer.getProduct.name}</div>
+                  <div style={{ fontSize: 12, color: "#16a34a", fontWeight: 700 }}>FREE</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   // Product Detail - DB Driven
   const ProductDetailPage = () => {
     const [qty, setQty] = useState(1);
@@ -1673,6 +1796,12 @@ export default function App() {
     const relatedProducts = products
       .filter((p) => normalizeCategory(p.category) === normalizeCategory(product.category) && normalizeId(p._id || p.id) !== normalizeId(product._id || product.id))
       .slice(0, 4);
+    const productKey = normalizeId(product._id || product.id);
+    const relatedOffersForProduct = activeOffers.filter((offer) => {
+      const buyId = normalizeId(offer?.buyProduct?._id || offer?.buyProduct?.id);
+      const getId = normalizeId(offer?.getProduct?._id || offer?.getProduct?.id);
+      return buyId === productKey || getId === productKey;
+    });
 
     useEffect(() => {
       if (sizes.length && !selectedSize) {
@@ -1871,6 +2000,51 @@ export default function App() {
             <div style={{ color: T.muted, fontSize: 14 }}>No related products available right now.</div>
           )}
         </div>
+
+        {relatedOffersForProduct.length > 0 && (
+          <div style={{ marginTop: 32, background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: 16 }}>
+            <h2 style={{ fontSize: 20, margin: "0 0 12px" }}>Available Combo Offers</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 12 }}>
+              {relatedOffersForProduct.map((offer) => {
+                const buy = offer.buyProduct;
+                const free = offer.getProduct;
+                const isCurrentBuy = normalizeId(buy?._id || buy?.id) === productKey;
+                const otherProduct = isCurrentBuy ? free : buy;
+
+                return (
+                  <div key={offer.id} style={{ background: T.input, borderRadius: 10, padding: 12, border: `1px solid ${T.border}` }}>
+                    <div style={{ fontSize: 11, color: T.accent, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
+                      {offer.title || "Buy 1 + Get 1"}
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, alignItems: "center", marginBottom: 10 }}>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ width: 56, height: 56, margin: "0 auto 6px", display: "flex", alignItems: "center", justifyContent: "center", background: T.card, borderRadius: 8 }}>
+                          {renderProductMedia(buy?.image, 46)}
+                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 600 }}>{buy?.name}</div>
+                      </div>
+                      <div style={{ fontWeight: 700, color: T.accent }}>+</div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ width: 56, height: 56, margin: "0 auto 6px", display: "flex", alignItems: "center", justifyContent: "center", background: T.card, borderRadius: 8 }}>
+                          {renderProductMedia(free?.image, 46)}
+                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 600 }}>{free?.name}</div>
+                      </div>
+                    </div>
+                    {otherProduct ? (
+                      <button
+                        style={{ ...styles.btn(false), width: "100%", justifyContent: "center", padding: "8px 10px", fontSize: 12 }}
+                        onClick={() => navigate("product", otherProduct)}
+                      >
+                        View {otherProduct.name}
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div style={{ marginTop: 48, borderTop: `1px solid ${T.border}`, paddingTop: 28 }}>
           <h2 style={{ fontSize: 24, marginBottom: 18 }}>Ratings & Reviews</h2>
@@ -2173,6 +2347,7 @@ export default function App() {
     const [newProduct, setNewProduct] = useState({ name: "", price: 0, originalPrice: 0, category: "", brand: "", description: "", image: "", images: [], sizes: [] });
     const [allOrders, setAllOrders] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
+    const [newOffer, setNewOffer] = useState({ title: "", buyProductId: "", getProductId: "" });
     const templateImportRef = useRef(null);
 
     const resetProductForm = () => {
@@ -2199,6 +2374,9 @@ export default function App() {
           const usersRes = await fetch(`${API_BASE}/users`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
+          const offersRes = await fetch(`${API_BASE}/offers/admin`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
 
           if (ordersRes.status === 401 || usersRes.status === 401) {
             return;
@@ -2206,6 +2384,11 @@ export default function App() {
 
           if (ordersRes.ok) setAllOrders(await ordersRes.json());
           if (usersRes.ok) setAllUsers(await usersRes.json());
+          if (offersRes.ok) {
+            const offerData = await offersRes.json();
+            const normalizedOffers = Array.isArray(offerData) ? offerData.map(mapApiOfferToUi).filter(Boolean) : [];
+            setOffers(normalizedOffers);
+          }
         } catch (e) {
           console.log("Admin data load:", e);
           // Fallback data for demo
@@ -2239,6 +2422,9 @@ export default function App() {
         const productsRes = await fetch(`${API_BASE}/products`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
+        const offersRes = await fetch(`${API_BASE}/offers/admin`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
 
         if (ordersRes.status === 401 || usersRes.status === 401) {
           showToast("Error: Session expired. Please login again.");
@@ -2252,11 +2438,89 @@ export default function App() {
           const transformedProducts = apiProducts.map(mapApiProductToUi);
           setProducts(transformedProducts);
         }
+        if (offersRes.ok) {
+          const offerData = await offersRes.json();
+          const normalizedOffers = Array.isArray(offerData) ? offerData.map(mapApiOfferToUi).filter(Boolean) : [];
+          setOffers(normalizedOffers);
+        }
         
         showToast("Success: Data refreshed");
       } catch (e) {
         console.log("Admin data refresh:", e);
         showToast("Refresh failed");
+      }
+    };
+
+    const createOffer = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        showToast("Error: Login required");
+        return;
+      }
+      if (!newOffer.buyProductId || !newOffer.getProductId) {
+        showToast("Error: Select both products for offer");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/offers`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title: newOffer.title,
+            buyProductId: newOffer.buyProductId,
+            getProductId: newOffer.getProductId
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error("Offer create failed");
+        }
+
+        setNewOffer({ title: "", buyProductId: "", getProductId: "" });
+        await loadOffers(true);
+        showToast("Success: Offer created");
+      } catch (error) {
+        showToast("Error: Offer create failed");
+      }
+    };
+
+    const toggleOffer = async (offerId) => {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/offers/${offerId}/toggle`, {
+          method: "PUT",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+          await loadOffers(true);
+          showToast("Success: Offer updated");
+        }
+      } catch (error) {
+        showToast("Error: Offer update failed");
+      }
+    };
+
+    const deleteOffer = async (offerId) => {
+      if (!window.confirm("Delete this offer?")) return;
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/offers/${offerId}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+          await loadOffers(true);
+          showToast("Success: Offer deleted");
+        }
+      } catch (error) {
+        showToast("Error: Offer delete failed");
       }
     };
 
@@ -2674,6 +2938,7 @@ export default function App() {
           {[
             { key: "dashboard", label: "Dashboard", icon: "??" },
             { key: "products", label: "Products", icon: "??" },
+            { key: "offers", label: "Offers", icon: "??" },
             { key: "templates", label: "Templates", icon: "??" },
             { key: "orders", label: "Orders", icon: "??" },
             { key: "users", label: "Users", icon: "??" }
@@ -2923,6 +3188,71 @@ export default function App() {
           </div>
         )}
 
+        {adminTab === "offers" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Offer Management</h2>
+                <p style={{ margin: "4px 0 0", color: T.muted, fontSize: 14 }}>Create Buy 1 + Get 1 product combos</p>
+              </div>
+            </div>
+
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 18, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
+                <input
+                  style={styles.input}
+                  placeholder="Offer title (optional)"
+                  value={newOffer.title}
+                  onChange={(e) => setNewOffer((prev) => ({ ...prev, title: e.target.value }))}
+                />
+                <select
+                  style={styles.input}
+                  value={newOffer.buyProductId}
+                  onChange={(e) => setNewOffer((prev) => ({ ...prev, buyProductId: e.target.value }))}
+                >
+                  <option value="">Buy Product</option>
+                  {products.map((p) => <option key={p._id || p.id} value={p._id || p.id}>{p.name}</option>)}
+                </select>
+                <select
+                  style={styles.input}
+                  value={newOffer.getProductId}
+                  onChange={(e) => setNewOffer((prev) => ({ ...prev, getProductId: e.target.value }))}
+                >
+                  <option value="">Free Product</option>
+                  {products.map((p) => <option key={p._id || p.id} value={p._id || p.id}>{p.name}</option>)}
+                </select>
+                <button style={{ ...styles.btn(true), padding: "12px 14px" }} onClick={createOffer}>Add Offer</button>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+              {offers.map((offer) => (
+                <div key={offer.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.accent }}>{offer.title || "Buy 1 + Get 1"}</div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: offer.active ? "#16a34a" : T.muted }}>
+                      {offer.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, alignItems: "center", marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{offer.buyProduct?.name}</div>
+                    <div style={{ color: T.accent, fontWeight: 700 }}>+</div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{offer.getProduct?.name}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button style={{ ...styles.btn(false), padding: "6px 10px", fontSize: 12 }} onClick={() => toggleOffer(offer._id || offer.id)}>
+                      {offer.active ? "Disable" : "Enable"}
+                    </button>
+                    <button style={{ ...styles.btn(false), background: "#e74c3c", color: "#fff", padding: "6px 10px", fontSize: 12 }} onClick={() => deleteOffer(offer._id || offer.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {adminTab === "templates" && (
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 10 : 0, marginBottom: 24 }}>
@@ -3130,6 +3460,7 @@ export default function App() {
       <main>
         {page === "home" && <HomePage />}
         {page === "catalog" && <CatalogPage />}
+        {page === "offers" && <OffersPage />}
         {page === "product" && selectedProduct && <ProductDetailPage />}
         {page === "checkout" && <CheckoutPage />}
         {page === "login" && !loggedIn && <LoginPage T={T} styles={styles} navigate={navigate} loginUser={loginUser} darkMode={darkMode} validateEmail={validateEmail} validatePhone={validatePhone} />}

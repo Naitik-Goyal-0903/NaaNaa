@@ -40,6 +40,7 @@ app.use('/api/users', require('./src/routes/users'));
 app.use('/api/cart', require('./src/routes/cart'));
 app.use('/api/wishlist', require('./src/routes/wishlist'));
 app.use('/api/templates', require('./src/routes/templates'));
+app.use('/api/offers', require('./src/routes/offers'));
 
 app.get('/', (req, res) => res.send('NaaNaa ecommerce backend'));
 
