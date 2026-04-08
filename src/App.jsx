@@ -34,7 +34,16 @@ const HERO_TEMPLATES = [
 ];
 
 const MAX_TEMPLATE_MEDIA_BYTES = 12 * 1024 * 1024;
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const normalizeApiBaseUrl = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "http://localhost:5000/api";
+  const withoutTrailingSlash = raw.replace(/\/+$/, "");
+  return /\/api$/i.test(withoutTrailingSlash)
+    ? withoutTrailingSlash
+    : `${withoutTrailingSlash}/api`;
+};
+
+const API_BASE = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
 // ─── UTILITY ─────────────────────────────────────────────────────────────────
