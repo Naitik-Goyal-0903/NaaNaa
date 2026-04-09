@@ -725,6 +725,7 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState(PRODUCTS); // Start with sample data, will be replaced by API
+  const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [offers, setOffers] = useState([]);
   const [catalogFilters, setCatalogFilters] = useState({ category: "All", priceMax: 100000, sort: "popular" });
   const [viewMode, setViewMode] = useState("grid");
@@ -733,6 +734,7 @@ export default function App() {
   const [requestStatus, setRequestStatus] = useState(null);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [heroTemplates, setHeroTemplates] = useState(HERO_TEMPLATES);
+  const [isTemplatesLoading, setIsTemplatesLoading] = useState(true);
   const [viewportWidth, setViewportWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1280);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -750,6 +752,7 @@ export default function App() {
   useEffect(() => {
     const loadTemplates = async () => {
       try {
+        setIsTemplatesLoading(true);
         const response = await fetch(`${API_BASE}/templates`);
         if (!response.ok) {
           throw new Error(`Template API failed (${response.status})`);
@@ -761,8 +764,9 @@ export default function App() {
         }
       } catch (error) {
         console.log("DB template load skipped");
+      } finally {
+        setIsTemplatesLoading(false);
       }
-
     };
     loadTemplates();
   }, []);
@@ -857,6 +861,7 @@ export default function App() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
+        setIsProductsLoading(true);
         const response = await fetch(`${API_BASE}/products`);
         if (response.ok) {
           const apiProducts = await response.json();
@@ -868,6 +873,8 @@ export default function App() {
         }
       } catch (error) {
         console.log("Failed to load products from API, using sample data");
+      } finally {
+        setIsProductsLoading(false);
       }
     };
     loadProducts();
@@ -1436,7 +1443,7 @@ export default function App() {
     return (
       <div style={{ background: T.bg }}>
         {/* Hero Section with Templates */}
-        <div style={{ ...styles.heroSection, background: currentHero.background, marginTop: 0 }}>
+        <div style={{ ...styles.heroSection, background: currentHero.background, marginTop: 0, filter: isTemplatesLoading ? "blur(8px)" : "blur(0)", opacity: isTemplatesLoading ? 0.6 : 1, transition: "filter 0.5s ease, opacity 0.5s ease", pointerEvents: isTemplatesLoading ? "none" : "auto" }}>
           {currentHero.mediaUrl && currentHero.mediaType === "image" && (
             <img src={currentHero.mediaUrl} alt="hero" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", objectPosition: "center", background: "#0f172a" }} />
           )}
@@ -1553,7 +1560,7 @@ export default function App() {
             </button>
           </div>
           <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "6px 0 14px" : "6px 0 20px" }}>Check out our latest arrivals</p>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
             {recentProducts.slice(0, isMobile ? 6 : recentProducts.length).map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
@@ -1580,7 +1587,7 @@ export default function App() {
                     See all {isMobile ? "→" : "?"}
                   </button>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
                   {categoryItems.slice(0, isMobile ? 8 : categoryItems.length).map(p => <ProductCard key={p.id} product={p} />)}
                 </div>
               </div>
@@ -1779,7 +1786,7 @@ export default function App() {
       ) : (
         <>
           <p style={{ ...styles.sectionSub, fontSize: isMobile ? 13 : 15, marginBottom: isMobile ? 14 : 20 }}>{filteredProducts.length} items found</p>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
             {filteredProducts.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </>
@@ -1800,7 +1807,7 @@ export default function App() {
           No active offers right now.
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 12 : 18 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 12 : 18, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
           {activeOffers.map((offer) => (
             <div key={offer.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: isMobile ? 10 : 14, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "inline-block", marginBottom: 10, background: T.input, color: T.accent, borderRadius: 999, padding: "5px 10px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8 }}>
