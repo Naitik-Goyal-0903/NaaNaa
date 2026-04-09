@@ -56,6 +56,7 @@ router.post('/', auth, async (req, res) => {
     const buyProductId = String(req.body.buyProductId || '').trim();
     const getProductId = String(req.body.getProductId || '').trim();
     const title = String(req.body.title || '').trim();
+    const image = String(req.body.image || '').trim();
 
     if (!mongoose.Types.ObjectId.isValid(buyProductId) || !mongoose.Types.ObjectId.isValid(getProductId)) {
       return res.status(400).json({ msg: 'Invalid product selection' });
@@ -73,6 +74,7 @@ router.post('/', auth, async (req, res) => {
     const offer = new Offer({
       title,
       type: 'BUY_X_GET_Y',
+      image,
       buyProduct: buyProduct._id,
       getProduct: getProduct._id,
       active: true

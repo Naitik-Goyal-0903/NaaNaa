@@ -61,7 +61,12 @@ const StarRating = ({ rating, max = 5, size = 14 }) => (
   </div>
 );
 
-const formatPrice = (p) => `$${p.toFixed(2)}`;
+const formatPrice = (value) => new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+}).format(Number(value) || 0);
 const discount = (orig, cur) => orig ? Math.round((1 - cur / orig) * 100) : null;
 const normalizeCategory = (value) => {
   const raw = String(value || "").trim();
@@ -242,6 +247,7 @@ const mapApiOfferToUi = (offer = {}) => {
     title: String(offer.title || '').trim(),
     type: offer.type || 'BUY_X_GET_Y',
     active: offer.active !== false,
+    image: pickMediaValue(offer.image),
     buyProduct,
     getProduct
   };
@@ -310,7 +316,7 @@ const SignupPage = React.memo(({ T, styles, navigate, signupUser, showToast, dar
       return;
     }
     setIsLoading(true);
-    await signupUser(formData.username, formData.mobile, formData.email, formData.password);
+    await signupUser(formData.username, formData.mobile, formData.email, formData.password, formData.confirmPassword);
     setIsLoading(false);
   };
 
@@ -334,7 +340,7 @@ const SignupPage = React.memo(({ T, styles, navigate, signupUser, showToast, dar
         <div>
           <div style={{ position: "relative" }}>
             <input style={{ ...styles.input, borderColor: errors.password ? "#e85050" : styles.input.borderColor }} placeholder="Password" name="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={handleChange} />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: T.text, cursor: "pointer", fontSize: 16 }}>{showPassword ? "??" : "???"}</button>
+            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: T.text, cursor: "pointer", fontSize: 14 }}>{showPassword ? "Hide" : "Show"}</button>
           </div>
           {errors.password && <span style={{ color: "#e85050", fontSize: 12, marginTop: 4, display: "block" }}>{errors.password}</span>}
         </div>
@@ -384,7 +390,7 @@ const LoginPage = React.memo(({ T, styles, navigate, loginUser, darkMode, valida
       return;
     }
     setIsLoading(true);
-    await loginUser(formData.identifier, formData.password);
+    await loginUser(formData.identifier, formData.password, formData.confirmPassword);
     setIsLoading(false);
   };
 
@@ -400,7 +406,7 @@ const LoginPage = React.memo(({ T, styles, navigate, loginUser, darkMode, valida
         <div>
           <div style={{ position: "relative" }}>
             <input style={{ ...styles.input, borderColor: errors.password ? "#e85050" : styles.input.borderColor }} placeholder="Password" name="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={handleChange} onKeyPress={handleKeyPress} />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: T.text, cursor: "pointer", fontSize: 16 }}>{showPassword ? "??" : "???"}</button>
+            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: T.text, cursor: "pointer", fontSize: 14 }}>{showPassword ? "Hide" : "Show"}</button>
           </div>
           {errors.password && <span style={{ color: "#e85050", fontSize: 12, marginTop: 4, display: "block" }}>{errors.password}</span>}
         </div>
@@ -486,7 +492,7 @@ const ProfilePage = React.memo(({ T, styles, navigate, user, setUser, logoutUser
       cancelled: "Order cancelled"
     };
     const eta = getDeliveryDate(order.createdAt);
-    showToast(`?? ${timeline[status] || "Tracking updated"} | ETA: ${eta}`);
+    showToast(`${timeline[status] || "Tracking updated"} | ETA: ${eta}`);
   };
 
   const sendEnquiry = (order, item) => {
@@ -597,7 +603,7 @@ const ProfilePage = React.memo(({ T, styles, navigate, user, setUser, logoutUser
         <h2 style={{ margin: "0 0 20px", fontSize: 20 }}>My Orders</h2>
         {userOrders.length === 0 ? (
           <div style={{ textAlign: "center", color: T.muted, padding: 40 }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>??</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📦</div>
             <div>No orders yet</div>
             <button style={{ ...styles.btn(true), marginTop: 16 }} onClick={() => navigate("catalog")}>Start Shopping</button>
           </div>
@@ -953,7 +959,7 @@ export default function App() {
     setWishlist([]);
     localStorage.removeItem("currentUser");
     localStorage.removeItem("authToken");
-    showToast("?? Logged out");
+    showToast("Logged out successfully");
     setPage("home");
   };
 
@@ -994,7 +1000,7 @@ export default function App() {
       }
       return [...prev, { ...product, qty }];
     });
-    showToast(`? ${product.name} added to bag`);
+    showToast(`Added ${product.name} to bag`);
   };
 
   const removeFromCart = (id) => setCart(prev => prev.filter(i => i.id !== id));
@@ -1126,7 +1132,7 @@ export default function App() {
           }}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          {mobileMenuOpen ? "?" : "?"}
+          {mobileMenuOpen ? "Close" : "Menu"}
         </button>
       )}
 
@@ -1204,7 +1210,7 @@ export default function App() {
             style={{ ...styles.btn(false), padding: "8px 12px", fontSize: 12 }}
             onClick={() => navigate("admin")}
           >
-            ?? Admin Portal
+            Admin Portal
           </button>
         )}
         {user?.role !== "admin" && (
@@ -1352,7 +1358,7 @@ export default function App() {
             <h2 style={{ margin: 0, fontSize: 21, lineHeight: 1.1 }}>Your Bag</h2>
             <div style={{ marginTop: 4, fontSize: 12, color: T.muted }}>{cartCount} item(s) ready for checkout</div>
           </div>
-          <button style={{ ...styles.iconBtn, fontSize: 20, background: T.card, border: `1px solid ${T.border}` }} onClick={() => setCartOpen(false)}>�</button>
+          <button style={{ ...styles.iconBtn, fontSize: 16, background: T.card, border: `1px solid ${T.border}` }} onClick={() => setCartOpen(false)}>Close</button>
         </div>
         {cart.length === 0 ? (
           <div style={{
@@ -1367,7 +1373,7 @@ export default function App() {
             background: T.input,
             marginTop: 8
           }}>
-            <span style={{ fontSize: 58 }}>???</span>
+            <span style={{ fontSize: 58 }}>Bag</span>
             <p style={{ marginTop: 12, fontSize: 14 }}>Your bag is empty</p>
             <button style={{ ...styles.btn(true), marginTop: 10 }} onClick={() => { setCartOpen(false); navigate("catalog"); }}>Browse Products</button>
           </div>
@@ -1387,14 +1393,14 @@ export default function App() {
                   <div style={{ width: 70, height: 70, borderRadius: 12, background: T.input, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>{renderProductMedia(item.image, 60)}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{item.name}</div>
-                    <div style={{ fontSize: 13, color: T.accent, fontWeight: 700, marginBottom: 6 }}>?{Number(item.price || 0).toFixed(2)}</div>
+                    <div style={{ fontSize: 13, color: T.accent, fontWeight: 700, marginBottom: 6 }}>{formatPrice(item.price || 0)}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <button onClick={() => updateQty(item.id, -1)} style={{ width: 26, height: 26, borderRadius: 6, border: `1px solid ${T.border}`, background: T.input, color: T.text, cursor: "pointer" }}>-</button>
                       <span style={{ fontSize: 14, fontWeight: 600, minWidth: 18, textAlign: "center" }}>{item.qty}</span>
                       <button onClick={() => updateQty(item.id, 1)} style={{ width: 26, height: 26, borderRadius: 6, border: `1px solid ${T.border}`, background: T.input, color: T.text, cursor: "pointer" }}>+</button>
                     </div>
                   </div>
-                  <button onClick={() => removeFromCart(item.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 18, alignSelf: "start" }}>�</button>
+                  <button onClick={() => removeFromCart(item.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 13, alignSelf: "start" }}>Remove</button>
                 </div>
               ))}
             </div>
@@ -1410,10 +1416,10 @@ export default function App() {
               zIndex: 10
             }}>
               <div style={{ background: `linear-gradient(145deg, ${T.input} 0%, ${T.card} 100%)`, border: `1px solid ${T.border}`, borderRadius: 14, padding: 12, marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}><span style={{ color: T.muted }}>Subtotal</span><span style={{ color: T.text }}>?{cartTotal.toFixed(2)}</span></div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}><span style={{ color: T.muted }}>Delivery</span><span style={{ color: cartTotal >= 500 ? "#16a34a" : T.text }}>{cartTotal >= 500 ? "Free" : "?50"}</span></div>
-                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: `1px dashed ${T.border}` }}><span style={{ fontWeight: 700 }}>Total</span><span style={{ fontWeight: 700, color: T.accent }}>?{(cartTotal + (cartTotal >= 500 ? 0 : 50)).toFixed(2)}</span></div>
-                <div style={{ marginTop: 6, fontSize: 11, color: T.muted }}>Free shipping on orders above ?500</div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}><span style={{ color: T.muted }}>Subtotal</span><span style={{ color: T.text }}>{formatPrice(cartTotal)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}><span style={{ color: T.muted }}>Delivery</span><span style={{ color: cartTotal >= 500 ? "#16a34a" : T.text }}>{cartTotal >= 500 ? "Free" : formatPrice(50)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: `1px dashed ${T.border}` }}><span style={{ fontWeight: 700 }}>Total</span><span style={{ fontWeight: 700, color: T.accent }}>{formatPrice(cartTotal + (cartTotal >= 500 ? 0 : 50))}</span></div>
+                <div style={{ marginTop: 6, fontSize: 11, color: T.muted }}>Free shipping on orders above {formatPrice(500)}</div>
               </div>
               <button style={{ ...styles.btn(true), width: "100%", justifyContent: "center", borderRadius: 12 }} onClick={() => { setCartOpen(false); navigate("checkout"); }}>Proceed to Checkout</button>
             </div>
@@ -1451,50 +1457,86 @@ export default function App() {
           </div>
         </div>
 
-        {/* Offers Section */}
-        {activeOffers.length > 0 && (
-          <div style={{ padding: isMobile ? "26px 14px" : "44px 24px", maxWidth: 1200, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <h2 style={styles.sectionTitle}>Special Offers</h2>
-              <button
-                style={{ ...styles.btn(false), fontSize: 13, padding: "8px 16px" }}
-                onClick={() => navigate("offers")}
-              >
-                View All Offers
-              </button>
+        {/* Categories + Offers */}
+        <div style={{ padding: isMobile ? "16px 0" : "44px 24px", maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 12 : 18, padding: isMobile ? "0 14px" : 0 }}>
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: isMobile ? 12 : 18, padding: isMobile ? 14 : 18 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 10 : 12 }}>
+                <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 18 : 24, margin: 0 }}>Categories</h2>
+                {!isMobile && <button
+                  style={{ ...styles.btn(false), fontSize: 13, padding: "8px 16px" }}
+                  onClick={() => navigate("catalog")}
+                >
+                  Browse All
+                </button>}
+              </div>
+              <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "6px 0 12px" : "6px 0 16px" }}>Jump straight into the collection you want</p>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: isMobile ? 10 : 12 }}>
+                {CATEGORIES.filter((category) => category !== "All").map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => {
+                      setCatalogFilters((f) => ({ ...f, category }));
+                      navigate("catalog");
+                    }}
+                    style={{
+                      padding: isMobile ? "14px 10px" : "18px 14px",
+                      borderRadius: isMobile ? 10 : 14,
+                      border: `1px solid ${T.border}`,
+                      background: T.input,
+                      color: T.text,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      textAlign: "center",
+                      fontSize: isMobile ? 13 : 16,
+                      transition: "all .2s"
+                    }}
+                    onMouseEnter={(e) => !isMobile && (e.target.style.background = T.accent) && (e.target.style.color = darkMode ? "#0f0f13" : "#fff")}
+                    onMouseLeave={(e) => !isMobile && (e.target.style.background = T.input) && (e.target.style.color = T.text)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
-            <p style={styles.sectionSub}>Buy 1 + Get 1 combos curated by admin</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-              {activeOffers.slice(0, 4).map((offer) => (
-                <div key={offer.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: T.accent, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
-                    {offer.title || "Buy 1 + Get 1"}
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ width: 62, height: 62, margin: "0 auto 6px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
-                        {renderProductMedia(offer.buyProduct.image, 52)}
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 600 }}>{offer.buyProduct.name}</div>
+
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: isMobile ? 12 : 18, padding: isMobile ? 14 : 18 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 10 : 12 }}>
+                <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 18 : 24, margin: 0 }}>Offers</h2>
+                {!isMobile && <button
+                  style={{ ...styles.btn(false), fontSize: 13, padding: "8px 16px" }}
+                  onClick={() => navigate("offers")}
+                >
+                  View Offers
+                </button>}
+              </div>
+              <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "6px 0 12px" : "6px 0 16px" }}>Buy 1 + Get 1 combos</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: isMobile ? 10 : 12 }}>
+                {activeOffers.length === 0 ? (
+                  <div style={{ padding: isMobile ? 12 : 18, borderRadius: isMobile ? 10 : 14, border: `1px solid ${T.border}`, color: T.muted, background: T.input, fontSize: isMobile ? 13 : 14 }}>No active offers right now.</div>
+                ) : activeOffers.slice(0, isMobile ? 2 : 3).map((offer) => (
+                  <div key={offer.id} style={{ display: "grid", gridTemplateColumns: isMobile ? "70px 1fr" : "88px 1fr", gap: isMobile ? 10 : 14, alignItems: "center", borderRadius: isMobile ? 10 : 14, border: `1px solid ${T.border}`, background: T.input, padding: isMobile ? 10 : 12 }}>
+                    <div style={{ width: isMobile ? 70 : 88, height: isMobile ? 70 : 88, borderRadius: isMobile ? 10 : 14, background: T.card, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                      {renderProductMedia(offer.image || offer.buyProduct.image, isMobile ? 60 : 78)}
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: T.accent }}>+</div>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ width: 62, height: 62, margin: "0 auto 6px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
-                        {renderProductMedia(offer.getProduct.image, 52)}
+                    <div>
+                      <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 700, color: T.accent, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
+                        {offer.title?.slice(0, 10) || "OFFER"}
                       </div>
-                      <div style={{ fontSize: 12, fontWeight: 600 }}>{offer.getProduct.name}</div>
+                      <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, marginBottom: 4, lineHeight: 1.2, display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 1, overflow: "hidden" }}>{offer.buyProduct.name}</div>
+                      <div style={{ fontSize: isMobile ? 11 : 12, color: T.muted }}>+ Get {offer.getProduct.name}</div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Recently Added Section */}
-        <div style={{ padding: isMobile ? "28px 14px" : "56px 24px", maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <h2 style={styles.sectionTitle}>Recently Added</h2>
+        <div style={{ padding: isMobile ? "18px 14px" : "56px 24px", maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 10 : 12, gap: 12 }}>
+            <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 20 : 28, margin: 0 }}>New Arrivals</h2>
             <button
               onClick={() => {
                 setCatalogFilters(f => ({ ...f, category: "Women's" }));
@@ -1502,27 +1544,27 @@ export default function App() {
               }}
               style={{
                 ...styles.btn(false),
-                fontSize: 13,
-                padding: "8px 16px",
+                fontSize: isMobile ? 12 : 13,
+                padding: isMobile ? "6px 12px" : "8px 16px",
                 gap: 4
               }}
             >
-              Explore More ?
+              See all {isMobile ? "→" : "?"}
             </button>
           </div>
-          <p style={styles.sectionSub}>Check out our latest arrivals</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 20 }}>
-            {recentProducts.map(p => <ProductCard key={p.id} product={p} />)}
+          <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "6px 0 14px" : "6px 0 20px" }}>Check out our latest arrivals</p>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20 }}>
+            {recentProducts.slice(0, isMobile ? 6 : recentProducts.length).map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
 
         {/* Category Sections */}
         {homeCollections.map(({ category, items: categoryItems }) => {
           return (
-            <div key={category} style={{ padding: isMobile ? "26px 14px" : "40px 24px", background: T.card, borderTop: `1px solid ${T.border}`, marginTop: isMobile ? 24 : 40 }}>
-              <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                  <h2 style={{ ...styles.sectionTitle, fontSize: 28 }}>{category} Collection</h2>
+            <div key={category} style={{ padding: isMobile ? "20px 0" : "40px 24px", background: T.card, borderTop: `1px solid ${T.border}`, marginTop: isMobile ? 12 : 40 }}>
+              <div style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "0 14px" : 0 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 20 : 28, margin: 0 }}>{category}</h2>
                   <button
                     onClick={() => {
                       setCatalogFilters(f => ({ ...f, category: category }));
@@ -1530,17 +1572,16 @@ export default function App() {
                     }}
                     style={{
                       ...styles.btn(false),
-                      fontSize: 13,
-                      padding: "8px 16px",
+                      fontSize: 12,
+                      padding: isMobile ? "6px 12px" : "8px 16px",
                       gap: 4
                     }}
                   >
-                    Explore More ?
+                    See all {isMobile ? "→" : "?"}
                   </button>
                 </div>
-                <p style={styles.sectionSub}>{categoryItems.length} items available</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 20 }}>
-                  {categoryItems.map(p => <ProductCard key={p.id} product={p} />)}
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20 }}>
+                  {categoryItems.slice(0, isMobile ? 8 : categoryItems.length).map(p => <ProductCard key={p.id} product={p} />)}
                 </div>
               </div>
             </div>
@@ -1548,23 +1589,23 @@ export default function App() {
         })}
 
         {/* Footer */}
-        <footer style={{ marginTop: 60, borderTop: `1px solid ${T.border}`, padding: "56px 24px", background: darkMode ? "linear-gradient(180deg, #090a10 0%, #0f111a 100%)" : "linear-gradient(180deg, #f0ede6 0%, #e8e2d7 100%)", textAlign: "center" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", border: `1px solid ${T.border}`, borderRadius: 16, padding: "26px 18px", background: darkMode ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.55)", backdropFilter: "blur(2px)" }}>
+        <footer style={{ marginTop: isMobile ? 40 : 60, borderTop: `1px solid ${T.border}`, padding: isMobile ? "28px 14px" : "56px 24px", background: darkMode ? "linear-gradient(180deg, #090a10 0%, #0f111a 100%)" : "linear-gradient(180deg, #f0ede6 0%, #e8e2d7 100%)", textAlign: "center" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", border: `1px solid ${T.border}`, borderRadius: isMobile ? 12 : 16, padding: isMobile ? "18px 14px" : "26px 18px", background: darkMode ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.55)", backdropFilter: "blur(2px)" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 1, marginBottom: 12, fontFamily: "'Arial', 'Helvetica', sans-serif" }}>
-              <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: T.text, display: "inline-block", transform: "scaleX(1.12)", transformOrigin: "center" }}>NAA</span>
-              <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: T.text, marginTop: "-2px", display: "inline-block", transform: "scaleX(1.12)", transformOrigin: "center" }}>Naa</span>
+              <span style={{ fontSize: isMobile ? 24 : 28, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: T.text, display: "inline-block", transform: "scaleX(1.12)", transformOrigin: "center" }}>NAA</span>
+              <span style={{ fontSize: isMobile ? 24 : 28, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: T.text, marginTop: "-2px", display: "inline-block", transform: "scaleX(1.12)", transformOrigin: "center" }}>Naa</span>
             </div>
-            <p style={{ color: T.muted, fontSize: 13, marginBottom: 20 }}>Curated collections for the discerning.</p>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-              <div style={{ color: T.muted, fontSize: 13, cursor: "pointer", transition: "all .3s" }} onClick={() => { const msg = "Hello! I'd like to connect with NaaNaa."; window.open(`https://wa.me/918869821170?text=${encodeURIComponent(msg)}`, '_blank'); }} onMouseEnter={(e) => e.target.style.color = T.accent} onMouseLeave={(e) => e.target.style.color = T.muted}>
-                ?? <strong style={{ color: T.text }}>8869821170</strong>
+            <p style={{ color: T.muted, fontSize: isMobile ? 12 : 13, marginBottom: 16, margin: isMobile ? "8px 0 16px" : "8px 0 20px" }}>Curated collections for the discerning.</p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: isMobile ? 8 : 12, marginBottom: 16 }}>
+              <div style={{ color: T.muted, fontSize: isMobile ? 12 : 13, cursor: "pointer", transition: "all .3s" }} onClick={() => { const msg = "Hello! I'd like to connect with NaaNaa."; window.open(`https://wa.me/918869821170?text=${encodeURIComponent(msg)}`, '_blank'); }} onMouseEnter={(e) => e.target.style.color = T.accent} onMouseLeave={(e) => e.target.style.color = T.muted}>
+                WhatsApp <strong style={{ color: T.text }}>8869821170</strong>
               </div>
-              <div style={{ width: 1, height: 20, background: T.border }} />
-              <a href="https://www.instagram.com/naanaa.we?igsh=djVybTFxMmk1d3hh" target="_blank" rel="noopener noreferrer" style={{ color: T.muted, fontSize: 13, textDecoration: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all .3s" }} onMouseEnter={(e) => e.currentTarget.style.color = T.accent} onMouseLeave={(e) => e.currentTarget.style.color = T.muted}>
-                <span>??</span> <strong style={{ color: T.text }}>@naanaa.we</strong>
+              {!isMobile && <div style={{ width: 1, height: 20, background: T.border }} />}
+              <a href="https://www.instagram.com/naanaa.we?igsh=djVybTFxMmk1d3hh" target="_blank" rel="noopener noreferrer" style={{ color: T.muted, fontSize: isMobile ? 12 : 13, textDecoration: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all .3s" }} onMouseEnter={(e) => e.currentTarget.style.color = T.accent} onMouseLeave={(e) => e.currentTarget.style.color = T.muted}>
+                <span>Instagram</span> <strong style={{ color: T.text }}>@naanaa.we</strong>
               </a>
             </div>
-            <p style={{ color: T.muted, fontSize: 12, marginTop: 24 }}>� 2025 <strong style={{ fontWeight: 700, color: T.text }}>NaaNaa</strong>. All rights reserved.</p>
+            <p style={{ color: T.muted, fontSize: isMobile ? 11 : 12, marginTop: 16 }}>© 2025 <strong style={{ fontWeight: 700, color: T.text }}>NaaNaa</strong>. All rights reserved.</p>
           </div>
         </footer>
       </div>
@@ -1588,9 +1629,29 @@ export default function App() {
     }, [photos.length]);
     
     return (
-      <div style={styles.productCard} onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 12px 40px ${darkMode ? "rgba(0,0,0,.35)" : "rgba(0,0,0,.12)"}`; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+      <div style={{
+        ...styles.productCard,
+        borderRadius: isMobile ? 10 : 14,
+        padding: 0,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%"
+      }} onMouseEnter={e => { if (!isMobile) { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 12px 40px ${darkMode ? "rgba(0,0,0,.35)" : "rgba(0,0,0,.12)"}`; } }} onMouseLeave={e => { if (!isMobile) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; } }}>
+        
+        {/* Product Image Container */}
         <div
-          style={{ ...styles.productImg, position: "relative" }}
+          style={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "1/1.2",
+            background: T.input,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            cursor: "pointer"
+          }}
           onClick={() => navigate("product", product)}
           onTouchStart={(e) => {
             if (photos.length > 1) touchStartX.current = e.changedTouches[0].clientX;
@@ -1608,11 +1669,43 @@ export default function App() {
           }}
         >
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {renderProductMedia(currentPhoto, 132)}
+            {renderProductMedia(currentPhoto, isMobile ? 110 : 132)}
           </div>
           
-          {/* Photo Navigation Dots */}
-          {photos.length > 1 && (
+          {/* Discount Badge */}
+          {disc && <span style={{ position: "absolute", top: isMobile ? 8 : 12, left: isMobile ? 8 : 12, ...styles.tag("red"), fontSize: isMobile ? 12 : 13 }}>-{disc}%</span>}
+          
+          {/* Wishlist Button - Heart Icon */}
+          <button 
+            onClick={e => { e.stopPropagation(); toggleWishlist(product.id); }} 
+            title={isWished ? "Remove from Wishlist" : "Add to Wishlist"}
+            style={{ 
+              position: "absolute", 
+              top: isMobile ? 8 : 12, 
+              right: disc ? (isMobile ? 8 : 12) : isMobile ? 8 : 12,
+              background: isWished ? "#ef4444" : "rgba(255,255,255,.9)",
+              border: "none",
+              borderRadius: isMobile ? 20 : 24,
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: isMobile ? 16 : 18,
+              boxShadow: "0 2px 8px rgba(0,0,0,.15)",
+              transition: "all .2s ease",
+              padding: 0,
+              color: isWished ? "#fff" : "#ef4444"
+            }}
+            onMouseEnter={e => !isMobile && (e.target.style.transform = "scale(1.1)")}
+            onMouseLeave={e => !isMobile && (e.target.style.transform = "scale(1)")}
+          >
+            {isWished ? "❤️" : "🤍"}
+          </button>
+          
+          {/* Photo Navigation Dots - Desktop Only */}
+          {!isMobile && photos.length > 1 && (
             <div style={{ position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, zIndex: 10 }}>
               {photos.map((_, idx) => (
                 <div
@@ -1630,39 +1723,30 @@ export default function App() {
               ))}
             </div>
           )}
-          
-          {/* Photo Swipe Arrows */}
-          {photos.length > 1 && (
-            <>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setPhotoIndex((photoIndex - 1 + photos.length) % photos.length); }}
-                style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,.8)", border: "none", borderRadius: 6, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14, zIndex: 10 }}
-              >
-                ?
-              </button>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setPhotoIndex((photoIndex + 1) % photos.length); }}
-                style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,.8)", border: "none", borderRadius: 6, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14, zIndex: 10 }}
-              >
-                ?
-              </button>
-            </>
-          )}
-          
-          {disc && <span style={{ position: "absolute", top: 12, right: 12, ...styles.tag("red") }}>-{disc}%</span>}
-          <button onClick={e => { e.stopPropagation(); toggleWishlist(product.id); }} style={{ position: "absolute", top: 12, right: disc ? 56 : 12, background: "rgba(255,255,255,.85)", border: "none", borderRadius: 20, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 17 }}>{isWished ? "??" : "??"}</button>
         </div>
-        <div style={styles.productInfo} onClick={() => navigate("product", product)}>
-          <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1 }}>{product.brand}</div>
-          <div style={{ fontSize: 15, fontWeight: 600, margin: "4px 0", flex: 1 }}>{product.name}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><StarRating rating={product.rating} size={13} /><span style={{ fontSize: 12, color: T.muted }}>({product.reviews})</span></div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 17, fontWeight: 700, color: T.accent }}>{formatPrice(product.price)}</span>
-            {product.originalPrice && <span style={{ fontSize: 13, color: T.muted, textDecoration: "line-through" }}>{formatPrice(product.originalPrice)}</span>}
+
+        {/* Product Info */}
+        <div style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          padding: isMobile ? "10px 12px" : "14px 18px",
+          cursor: "pointer"
+        }} onClick={() => navigate("product", product)}>
+          <div style={{ fontSize: isMobile ? 10 : 11, color: T.muted, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{product.brand}</div>
+          <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 600, margin: "4px 0 6px", flex: 1, lineHeight: 1.3, display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: isMobile ? 2 : 2, overflow: "hidden" }}>{product.name}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}><StarRating rating={product.rating} size={isMobile ? 11 : 13} /><span style={{ fontSize: isMobile ? 10 : 12, color: T.muted }}>({product.reviews})</span></div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{ fontSize: isMobile ? 15 : 17, fontWeight: 700, color: T.accent }}>{formatPrice(product.price)}</span>
+            {product.originalPrice && <span style={{ fontSize: isMobile ? 11 : 13, color: T.muted, textDecoration: "line-through" }}>{formatPrice(product.originalPrice)}</span>}
           </div>
         </div>
-        <div style={{ padding: "0 18px 18px" }}>
-          <button style={{ ...styles.btn(true), width: "100%", padding: "11px 0", justifyContent: "center", fontSize: 13 }} onClick={(e) => { e.stopPropagation(); addToCart(product); }}>Add to Bag</button>
+
+        {/* Add to Bag Button */}
+        <div style={{ padding: isMobile ? "8px 12px" : "10px 18px" }}>
+          <button style={{ ...styles.btn(true), width: "100%", padding: isMobile ? "10px 0" : "11px 0", justifyContent: "center", fontSize: isMobile ? 12 : 13, fontWeight: 600, borderRadius: isMobile ? 8 : 10 }} onClick={(e) => { e.stopPropagation(); addToCart(product); }}>
+            {isMobile ? "Add" : "Add to Bag"}
+          </button>
         </div>
       </div>
     );
@@ -1670,11 +1754,11 @@ export default function App() {
 
   // Catalog
   const CatalogPage = () => (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: pagePadding }}>
-      <h1 style={{ ...styles.sectionTitle, fontSize: isMobile ? 28 : 34 }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px 14px" : pagePadding }}>
+      <h1 style={{ ...styles.sectionTitle, fontSize: isMobile ? 24 : 34, marginBottom: isMobile ? 12 : 16 }}>
         {catalogFilters.category === "All" ? "All Products" : 
          catalogFilters.category === "wishlist" ? "Liked Items" :
-         `${catalogFilters.category} Collection`}
+         `${catalogFilters.category}`}
       </h1>
       {catalogFilters.category === "Men's" ? (
         <div style={{
@@ -1682,20 +1766,20 @@ export default function App() {
           background: "linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #334155 100%)",
           borderRadius: 16,
           border: `1px solid ${T.border}`,
-          padding: "46px 28px",
+          padding: isMobile ? "32px 20px" : "46px 28px",
           color: "#e2e8f0",
           textAlign: "center"
         }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>Coming Soon</div>
-          <div style={{ fontSize: 15, opacity: 0.9, maxWidth: 680, margin: "0 auto", lineHeight: 1.8 }}>
+          <div style={{ fontSize: isMobile ? 28 : 36, marginBottom: 10 }}>Coming Soon</div>
+          <div style={{ fontSize: isMobile ? 14 : 15, opacity: 0.9, maxWidth: 680, margin: "0 auto", lineHeight: 1.8 }}>
             Men&apos;s collection is under curation right now. We are crafting a sharper, cleaner line-up for launch.
             Stay tuned for a premium drop very soon.
           </div>
         </div>
       ) : (
         <>
-          <p style={styles.sectionSub}>{filteredProducts.length} items found</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 20 }}>
+          <p style={{ ...styles.sectionSub, fontSize: isMobile ? 13 : 15, marginBottom: isMobile ? 14 : 20 }}>{filteredProducts.length} items found</p>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20 }}>
             {filteredProducts.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </>
@@ -1704,38 +1788,36 @@ export default function App() {
   );
 
   const OffersPage = () => (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: pagePadding }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <h1 style={{ ...styles.sectionTitle, fontSize: isMobile ? 28 : 34 }}>Offers</h1>
-        <button style={{ ...styles.btn(false), padding: "8px 16px", fontSize: 13 }} onClick={() => navigate("catalog")}>Shop Products</button>
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px 14px" : pagePadding }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isMobile ? 12 : 20, gap: 12 }}>
+        <h1 style={{ ...styles.sectionTitle, fontSize: isMobile ? 24 : 34, margin: 0 }}>Offers</h1>
+        {!isMobile && <button style={{ ...styles.btn(false), padding: "8px 16px", fontSize: 13 }} onClick={() => navigate("catalog")}>Shop Products</button>}
       </div>
-      <p style={styles.sectionSub}>{activeOffers.length} offer(s) available</p>
+      {isMobile && <button style={{ ...styles.btn(false), padding: "8px 16px", fontSize: 13, width: "100%" }} onClick={() => navigate("catalog")}>Shop Products</button>}
+      <p style={{ ...styles.sectionSub, fontSize: isMobile ? 13 : 15, marginTop: isMobile ? 12 : 0, marginBottom: isMobile ? 14 : 20 }}>{activeOffers.length} offer(s) available</p>
       {activeOffers.length === 0 ? (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 22, color: T.muted }}>
           No active offers right now.
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 12 : 18 }}>
           {activeOffers.map((offer) => (
-            <div key={offer.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16 }}>
+            <div key={offer.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: isMobile ? 10 : 14, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "inline-block", marginBottom: 10, background: T.input, color: T.accent, borderRadius: 999, padding: "5px 10px", fontSize: 11, fontWeight: 700, letterSpacing: 0.8 }}>
                 {offer.title || "Buy 1 + Get 1"}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 12 }}>
+              <div style={{ width: "100%", height: isMobile ? 100 : 140, borderRadius: 12, overflow: "hidden", marginBottom: 12, background: T.input, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {renderProductMedia(offer.image || offer.buyProduct.image, isMobile ? 90 : 120)}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: isMobile ? 8 : 12 }}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ width: 80, height: 80, margin: "0 auto 8px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
-                    {renderProductMedia(offer.buyProduct.image, 68)}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{offer.buyProduct.name}</div>
-                  <div style={{ fontSize: 12, color: T.accent }}>{formatPrice(offer.buyProduct.price)}</div>
+                  <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, lineHeight: 1.2 }}>{offer.buyProduct.name}</div>
+                  <div style={{ fontSize: isMobile ? 11 : 12, color: T.accent, marginTop: 4 }}>{formatPrice(offer.buyProduct.price)}</div>
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: T.accent }}>+</div>
+                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: T.accent }}>+</div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ width: 80, height: 80, margin: "0 auto 8px", display: "flex", alignItems: "center", justifyContent: "center", background: T.input, borderRadius: 10 }}>
-                    {renderProductMedia(offer.getProduct.image, 68)}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{offer.getProduct.name}</div>
-                  <div style={{ fontSize: 12, color: "#16a34a", fontWeight: 700 }}>FREE</div>
+                  <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, lineHeight: 1.2 }}>{offer.getProduct.name}</div>
+                  <div style={{ fontSize: isMobile ? 11 : 12, color: "#16a34a", fontWeight: 700, marginTop: 4 }}>FREE</div>
                 </div>
               </div>
             </div>
@@ -1983,8 +2065,8 @@ export default function App() {
               <button onClick={handleAddToCart} style={{ ...styles.btn(true), flex: 1, justifyContent: "center" }}>
                 Add to Bag
               </button>
-              <button onClick={() => toggleWishlist(product._id || product.id)} style={{ ...styles.btn(false), width: 54, padding: 0, justifyContent: "center" }}>
-                {isWishlisted ? "??" : "??"}
+              <button onClick={() => toggleWishlist(product._id || product.id)} style={{ ...styles.btn(false), width: 54, padding: 0, justifyContent: "center" }} title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}>
+                {isWishlisted ? "❤️" : "🤍"}
               </button>
             </div>
 
@@ -2183,9 +2265,9 @@ export default function App() {
           // Generate WhatsApp message
           const orderId = responseData.order._id?.toString().slice(-6).toUpperCase() || 'NEW';
           const itemsList = cart
-            .map(item => `� ${item.name} x${item.qty || item.quantity || 1} - ?${item.price}`)
+            .map(item => `- ${item.name} x${item.qty || item.quantity || 1} - ${formatPrice(item.price)}`)
             .join('\n');
-          const whatsappMessage = `? *Mujhe ye order place karna hai*\n\nOrder ID: ${orderId}\nCustomer Name: ${addressData.name}\nCustomer Username: ${user?.username || 'N/A'}\nCustomer Email: ${user?.email || 'N/A'}\nCustomer Mobile: ${addressData.mobile}\nShipping Address: ${addressData.address}\n\nItems:\n${itemsList}\n\nSubtotal: ?${cartTotal.toFixed(2)}\nDelivery Charge: ?${deliveryCharge.toFixed(2)}\nGrand Total: ?${totalWithDelivery.toFixed(2)}\nPayment Mode: Prepaid (Online)\nPayment Status: Paid\n\nKindly process and confirm this order.`;
+          const whatsappMessage = `Mujhe ye order place karna hai\n\nOrder ID: ${orderId}\nCustomer Name: ${addressData.name}\nCustomer Username: ${user?.username || 'N/A'}\nCustomer Email: ${user?.email || 'N/A'}\nCustomer Mobile: ${addressData.mobile}\nShipping Address: ${addressData.address}\n\nItems:\n${itemsList}\n\nSubtotal: ${formatPrice(cartTotal)}\nDelivery Charge: ${formatPrice(deliveryCharge)}\nGrand Total: ${formatPrice(totalWithDelivery)}\nPayment Mode: Prepaid (Online)\nPayment Status: Paid\n\nKindly process and confirm this order.`;
           
           const adminNumber = '918869821170';
           const encodedMessage = encodeURIComponent(whatsappMessage);
@@ -2244,7 +2326,7 @@ export default function App() {
                     if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
                   }}
                 />
-                {errors.name && <span style={{ fontSize: 12, color: "#ef4444", marginTop: 4, display: "block" }}>?? {errors.name}</span>}
+                {errors.name && <span style={{ fontSize: 12, color: "#ef4444", marginTop: 4, display: "block" }}>• {errors.name}</span>}
               </label>
 
               {/* Mobile Field */}
@@ -2261,7 +2343,7 @@ export default function App() {
                     if (errors.mobile) setErrors(prev => ({ ...prev, mobile: "" }));
                   }}
                 />
-                {errors.mobile && <span style={{ fontSize: 12, color: "#ef4444", marginTop: 4, display: "block" }}>?? {errors.mobile}</span>}
+                {errors.mobile && <span style={{ fontSize: 12, color: "#ef4444", marginTop: 4, display: "block" }}>• {errors.mobile}</span>}
               </label>
 
               {/* Address Field */}
@@ -2276,18 +2358,18 @@ export default function App() {
                     if (errors.address) setErrors(prev => ({ ...prev, address: "" }));
                   }}
                 />
-                {errors.address && <span style={{ fontSize: 12, color: "#ef4444", marginTop: 4, display: "block" }}>?? {errors.address}</span>}
+                {errors.address && <span style={{ fontSize: 12, color: "#ef4444", marginTop: 4, display: "block" }}>• {errors.address}</span>}
               </label>
 
               {/* Delivery Info */}
               <div style={{ background: T.input, padding: 16, borderRadius: 12, marginTop: 24 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: T.text }}>?? Delivery Information</div>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: T.text }}>📋 Delivery Information</div>
                 <ul style={{ fontSize: 13, color: T.muted, margin: 0, paddingLeft: 20, listStyle: "none" }}>
-                  <li style={{ marginBottom: 4 }}>? Estimated delivery: 5-7 business days</li>
-                  <li style={{ marginBottom: 4 }}>? Free shipping on orders above ?500</li>
-                  <li style={{ marginBottom: 4 }}>? Delivery charge ?50 below ?500</li>
-                  <li style={{ marginBottom: 4 }}>? Online prepaid payment only</li>
-                  <li style={{ marginBottom: 4 }}>?? After placing your order, you'll be redirected to WhatsApp for direct payment confirmation - ensuring transparency and building trust with every purchase.</li>
+                  <li style={{ marginBottom: 4 }}>• Estimated delivery: 5-7 business days</li>
+                  <li style={{ marginBottom: 4 }}>• Free shipping on orders above ₹500</li>
+                  <li style={{ marginBottom: 4 }}>• Delivery charge ₹50 below ₹500</li>
+                  <li style={{ marginBottom: 4 }}>• Online prepaid payment only</li>
+                  <li style={{ marginBottom: 4 }}>📱 After placing your order, you'll be redirected to WhatsApp for direct payment confirmation - ensuring transparency and building trust with every purchase.</li>
                 </ul>
                 <div style={{ fontSize: 12, color: T.accent, marginTop: 12, fontStyle: "italic" }}>Your trust matters to us. All transactions are secured and transparently communicated.</div>
               </div>
@@ -2356,7 +2438,7 @@ export default function App() {
     const [newProduct, setNewProduct] = useState({ name: "", price: 0, originalPrice: 0, category: "", brand: "", description: "", image: "", images: [], sizes: [] });
     const [allOrders, setAllOrders] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
-    const [newOffer, setNewOffer] = useState({ title: "", buyProductId: "", getProductId: "" });
+    const [newOffer, setNewOffer] = useState({ title: "", buyProductId: "", getProductId: "", image: "" });
     const templateImportRef = useRef(null);
 
     const resetProductForm = () => {
@@ -2481,7 +2563,8 @@ export default function App() {
           body: JSON.stringify({
             title: newOffer.title,
             buyProductId: newOffer.buyProductId,
-            getProductId: newOffer.getProductId
+            getProductId: newOffer.getProductId,
+            image: newOffer.image
           })
         });
 
@@ -2489,8 +2572,14 @@ export default function App() {
           throw new Error("Offer create failed");
         }
 
-        setNewOffer({ title: "", buyProductId: "", getProductId: "" });
-        await loadOffers(true);
+        const result = await res.json();
+        if (result?.offer) {
+          const createdOffer = mapApiOfferToUi(result.offer);
+          if (createdOffer) setOffers((prev) => [createdOffer, ...prev.filter((offer) => String(offer.id) !== String(createdOffer.id))]);
+        } else {
+          await loadOffers(true);
+        }
+        setNewOffer({ title: "", buyProductId: "", getProductId: "", image: "" });
         showToast("Success: Offer created");
       } catch (error) {
         showToast("Error: Offer create failed");
@@ -2506,7 +2595,11 @@ export default function App() {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) {
-          await loadOffers(true);
+          setOffers((prev) => prev.map((offer) => (
+            String(offer._id || offer.id) === String(offerId)
+              ? { ...offer, active: !offer.active }
+              : offer
+          )));
           showToast("Success: Offer updated");
         }
       } catch (error) {
@@ -2525,7 +2618,7 @@ export default function App() {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) {
-          await loadOffers(true);
+          setOffers((prev) => prev.filter((offer) => String(offer._id || offer.id) !== String(offerId)));
           showToast("Success: Offer deleted");
         }
       } catch (error) {
@@ -2582,18 +2675,6 @@ export default function App() {
           }
           
           resetProductForm();
-          // Reload products if API is available
-          try {
-            const productsRes = await fetch(`${API_BASE}/products`, {
-              headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }
-            });
-            if (productsRes.ok) {
-              const apiProducts = await productsRes.json();
-              const transformedProducts = apiProducts.map(mapApiProductToUi);
-              setProducts(transformedProducts);
-              console.log("Products reloaded and updated");
-            }
-          } catch (e) { console.log("Product reload failed"); }
         } else {
           let errorMsg = "Unknown error";
           try {
@@ -2619,15 +2700,7 @@ export default function App() {
         });
         if (res.ok) {
           showToast("Success: Product deleted");
-          // Reload products list
-          try {
-            const productsRes = await fetch(`${API_BASE}/products`, {
-              headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }
-            });
-            if (productsRes.ok) {
-              console.log("Products reloaded after delete");
-            }
-          } catch (e) { console.log("Product reload failed"); }
+          setProducts((prev) => prev.filter((p) => normalizeId(p._id || p.id) !== normalizeId(productId)));
         } else {
           showToast("Error: Delete failed");
         }
@@ -2664,6 +2737,24 @@ export default function App() {
       }
     };
 
+    const handleOfferImageUpload = async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      try {
+        const imageDataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        setNewOffer((prev) => ({ ...prev, image: imageDataUrl }));
+      } catch (error) {
+        window.alert("Offer image upload failed");
+      }
+    };
+
     const handleTemplateImport = async (event) => {
       const files = Array.from(event.target.files || []);
       if (!files.length) return;
@@ -2694,7 +2785,7 @@ export default function App() {
         const isMediaFile = (file.type || "").startsWith("image/") || (file.type || "").startsWith("video/") || /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov|ogg)$/i.test(file.name);
         if (isMediaFile) {
           if (file.size > MAX_TEMPLATE_MEDIA_BYTES) {
-            showToast(`?? ${file.name} is too large. Max 12MB for template media.`);
+            showToast(`📁 ${file.name} is too large. Max 12MB for template media.`);
             continue;
           }
 
@@ -2866,7 +2957,7 @@ export default function App() {
             showToast(`Success: ${savedCount} template(s) saved permanently`);
           }
         } catch (error) {
-          showToast(`?? ${error.message || "DB save failed"}`);
+          showToast(`❌ ${error.message || "DB save failed"}`);
         }
       };
 
@@ -2932,28 +3023,27 @@ export default function App() {
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: pagePadding }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 12 : 0, marginBottom: 32 }}>
           <div>
-            <h1 style={{ fontSize: isMobile ? 28 : 36, fontWeight: 700, margin: 0, color: T.accent }}>?? Admin Panel</h1>
+            <h1 style={{ fontSize: isMobile ? 28 : 36, fontWeight: 700, margin: 0, color: T.accent }}>Admin Panel</h1>
             <p style={{ margin: "4px 0 0", color: T.muted, fontSize: 14 }}>Manage your e-commerce platform</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <button style={{ ...styles.btn(false), padding: "8px 16px" }} onClick={refreshAdminData}>
-              <span style={{ marginRight: 4 }}>??</span>Refresh
+              <span style={{ marginRight: 4 }}>Refresh</span>
             </button>
-            <button style={{ ...styles.btn(false), padding: "8px 16px" }} onClick={() => navigate("home")}>? Back to Store</button>
+            <button style={{ ...styles.btn(false), padding: "8px 16px" }} onClick={() => navigate("home")}>Back to Store</button>
           </div>
         </div>
 
         <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${T.border}`, marginBottom: 32, overflowX: "auto" }}>
           {[
-            { key: "dashboard", label: "Dashboard", icon: "??" },
-            { key: "products", label: "Products", icon: "??" },
-            { key: "offers", label: "Offers", icon: "??" },
-            { key: "templates", label: "Templates", icon: "??" },
-            { key: "orders", label: "Orders", icon: "??" },
-            { key: "users", label: "Users", icon: "??" }
-          ].map(({ key, label, icon }) => (
+            { key: "dashboard", label: "Dashboard" },
+            { key: "products", label: "Products" },
+            { key: "offers", label: "Offers" },
+            { key: "templates", label: "Templates" },
+            { key: "orders", label: "Orders" },
+            { key: "users", label: "Users" }
+          ].map(({ key, label }) => (
             <button key={key} style={tabStyle(adminTab === key)} onClick={() => setAdminTab(key)}>
-              <span style={{ marginRight: 8 }}>{icon}</span>
               {label}
             </button>
           ))}
@@ -2965,7 +3055,7 @@ export default function App() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 32 }}>
               <div style={{ background: `linear-gradient(135deg, ${T.card} 0%, ${T.input} 100%)`, padding: 24, borderRadius: 16, border: `1px solid ${T.border}`, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ fontSize: 32 }}>??</div>
+                  <div style={{ fontSize: 32 }}>Revenue</div>
                   <div>
                     <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Total Products</div>
                     <div style={{ fontSize: 32, fontWeight: 700, color: T.accent, marginTop: 4 }}>{products.length}</div>
@@ -2976,7 +3066,7 @@ export default function App() {
 
               <div style={{ background: `linear-gradient(135deg, ${T.card} 0%, ${T.input} 100%)`, padding: 24, borderRadius: 16, border: `1px solid ${T.border}`, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ fontSize: 32 }}>??</div>
+                  <div style={{ fontSize: 32 }}>Orders</div>
                   <div>
                     <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Total Orders</div>
                     <div style={{ fontSize: 32, fontWeight: 700, color: "#10b981", marginTop: 4 }}>{allOrders.length}</div>
@@ -2987,7 +3077,7 @@ export default function App() {
 
               <div style={{ background: `linear-gradient(135deg, ${T.card} 0%, ${T.input} 100%)`, padding: 24, borderRadius: 16, border: `1px solid ${T.border}`, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ fontSize: 32 }}>??</div>
+                  <div style={{ fontSize: 32 }}>Users</div>
                   <div>
                     <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Total Users</div>
                     <div style={{ fontSize: 32, fontWeight: 700, color: "#3b82f6", marginTop: 4 }}>{allUsers.length}</div>
@@ -2998,10 +3088,10 @@ export default function App() {
 
               <div style={{ background: `linear-gradient(135deg, ${T.card} 0%, ${T.input} 100%)`, padding: 24, borderRadius: 16, border: `1px solid ${T.border}`, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ fontSize: 32 }}>??</div>
+                  <div style={{ fontSize: 32 }}>Revenue</div>
                   <div>
                     <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Revenue</div>
-                    <div style={{ fontSize: 32, fontWeight: 700, color: "#f59e0b", marginTop: 4 }}>${(allOrders.reduce((sum, o) => sum + (o.total || 0), 0)).toFixed(2)}</div>
+                    <div style={{ fontSize: 32, fontWeight: 700, color: "#f59e0b", marginTop: 4 }}>{formatPrice(allOrders.reduce((sum, o) => sum + (o.total || 0), 0))}</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 13, color: T.muted }}>Total earnings</div>
@@ -3023,7 +3113,7 @@ export default function App() {
                           <div style={{ fontSize: 12, color: T.muted }}>{new Date(order.createdAt).toLocaleDateString()}</div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontWeight: 600 }}>${order.total?.toFixed(2)}</div>
+                          <div style={{ fontWeight: 600 }}>{formatPrice(order.total || 0)}</div>
                           <div style={{ fontSize: 12, color: getStatusColor(order.status), fontWeight: 500 }}>{order.status}</div>
                         </div>
                       </div>
@@ -3042,7 +3132,7 @@ export default function App() {
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{product.name}</div>
                         <div style={{ fontSize: 12, color: T.muted }}>{product.category}</div>
                       </div>
-                      <div style={{ fontWeight: 600, color: T.accent }}>${product.price}</div>
+                      <div style={{ fontWeight: 600, color: T.accent }}>{formatPrice(product.price)}</div>
                     </div>
                   ))}
                 </div>
@@ -3059,14 +3149,14 @@ export default function App() {
                 <p style={{ margin: "4px 0 0", color: T.muted, fontSize: 14 }}>Manage your product catalog</p>
               </div>
               <button style={{ ...styles.btn(true), padding: "12px 24px", fontSize: 14 }} onClick={openProductForm}>
-                <span style={{ marginRight: 8 }}>?</span>Add Product
+                <span style={{ marginRight: 8 }}>+</span>Add Product
               </button>
             </div>
 
             {(showProductForm || editingProduct || hasProductDraft) && (
               <div style={{ background: T.card, padding: 32, borderRadius: 16, marginBottom: 32, border: `1px solid ${T.border}`, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-                  <div style={{ fontSize: 24 }}>{editingProduct ? "??" : "?"}</div>
+                  <div style={{ fontSize: 24 }}>{editingProduct ? "Edit" : "Add"}</div>
                   <h3 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{editingProduct ? "Edit Product" : "Add New Product"}</h3>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 20 }}>
@@ -3118,7 +3208,7 @@ export default function App() {
                 <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "flex-end" }}>
                   <button style={{...styles.btn(false), background: T.border}} onClick={resetProductForm}>Cancel</button>
                   <button style={styles.btn(true)} onClick={saveProduct}>
-                    <span style={{ marginRight: 8 }}>{editingProduct ? "??" : "?"}</span>
+                    <span style={{ marginRight: 8 }}>{editingProduct ? "Edit" : "Add"}</span>
                     {editingProduct ? "Update Product" : "Save Product"}
                   </button>
                 </div>
@@ -3154,8 +3244,8 @@ export default function App() {
                           </div>
                         </td>
                         <td style={{ padding: 16 }}>
-                          <div style={{ fontWeight: 600, color: T.accent }}>${product.price}</div>
-                          {product.originalPrice && <div style={{ fontSize: 12, color: T.muted, textDecoration: "line-through" }}>${product.originalPrice}</div>}
+                          <div style={{ fontWeight: 600, color: T.accent }}>{formatPrice(product.price)}</div>
+                          {product.originalPrice && <div style={{ fontSize: 12, color: T.muted, textDecoration: "line-through" }}>{formatPrice(product.originalPrice)}</div>}
                         </td>
                         <td style={{ padding: 16 }}>
                           <span style={{ background: T.input, padding: "4px 8px", borderRadius: 6, fontSize: 12 }}>{product.category}</span>
@@ -3181,10 +3271,10 @@ export default function App() {
                                   : ((isImageValue(product.image) || isVideoValue(product.image)) ? [product.image] : [])
                               });
                             }}>
-                              <span style={{ marginRight: 4 }}>??</span>Edit
+                              <span style={{ marginRight: 4 }}>Edit</span>
                             </button>
                             <button style={{...styles.btn(false), padding: "6px 12px", fontSize: 12, background: "#e74c3c", color: "#fff"}} onClick={() => deleteProduct(product._id || product.id)}>
-                              <span style={{ marginRight: 4 }}>???</span>Delete
+                              <span style={{ marginRight: 4 }}>Delete</span>
                             </button>
                           </div>
                         </td>
@@ -3207,12 +3297,18 @@ export default function App() {
             </div>
 
             <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 18, marginBottom: 20 }}>
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
                 <input
                   style={styles.input}
                   placeholder="Offer title (optional)"
                   value={newOffer.title}
                   onChange={(e) => setNewOffer((prev) => ({ ...prev, title: e.target.value }))}
+                />
+                <input
+                  style={styles.input}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleOfferImageUpload}
                 />
                 <select
                   style={styles.input}
@@ -3242,6 +3338,9 @@ export default function App() {
                     <span style={{ fontSize: 11, fontWeight: 700, color: offer.active ? "#16a34a" : T.muted }}>
                       {offer.active ? "Active" : "Inactive"}
                     </span>
+                  </div>
+                  <div style={{ width: "100%", height: 132, borderRadius: 12, overflow: "hidden", marginBottom: 10, background: T.input, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {renderProductMedia(offer.image || offer.buyProduct.image, 116)}
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, alignItems: "center", marginBottom: 10 }}>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{offer.buyProduct?.name}</div>
@@ -3393,7 +3492,11 @@ export default function App() {
                             }).then(res => {
                               if (res.ok) {
                                 showToast('Success: Status updated');
-                                refreshAdminData();
+                                setAllOrders((prev) => prev.map((item) => (
+                                  String(item._id) === String(order._id)
+                                    ? { ...item, status: newStatus }
+                                    : item
+                                )));
                               }
                             }).catch(err => {
                               showToast('Error: Failed to update');

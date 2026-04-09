@@ -25,14 +25,39 @@ const seed = async () => {
     const ADMIN_USERNAME = requireEnv('SEED_ADMIN_USERNAME', 'admin');
     const ADMIN_PASS = requireEnv('SEED_ADMIN_PASSWORD');
     const ADMIN_EMAIL = requireEnv('SEED_ADMIN_EMAIL', 'admin@naananaa.local');
-    let admin = await User.findOne({ username: ADMIN_USERNAME });
+    const ADMIN_MOBILE = requireEnv('SEED_ADMIN_MOBILE', '9999999999');
+    let admin = await User.findOne({
+      $or: [
+        { username: ADMIN_USERNAME },
+        { email: ADMIN_EMAIL },
+        { mobile: ADMIN_MOBILE }
+      ]
+    });
+
     if (!admin) {
       const hashed = await bcrypt.hash(ADMIN_PASS, 10);
-      admin = new User({ name: 'Admin', email: ADMIN_EMAIL, username: ADMIN_USERNAME, password: hashed, role: 'admin' });
+      admin = new User({
+        name: 'Admin',
+        email: ADMIN_EMAIL,
+        mobile: ADMIN_MOBILE,
+        username: ADMIN_USERNAME,
+        password: hashed,
+        role: 'admin'
+      });
       await admin.save();
       console.log('✓ Admin user created:', ADMIN_USERNAME);
     } else {
-      console.log('✓ Admin already exists');
+      if (admin.username !== ADMIN_USERNAME || admin.email !== ADMIN_EMAIL || admin.mobile !== ADMIN_MOBILE || admin.role !== 'admin') {
+        admin.username = ADMIN_USERNAME;
+        admin.email = ADMIN_EMAIL;
+        admin.mobile = ADMIN_MOBILE;
+        admin.role = 'admin';
+        admin.password = await bcrypt.hash(ADMIN_PASS, 10);
+        await admin.save();
+        console.log('✓ Existing admin user updated:', ADMIN_USERNAME);
+      } else {
+        console.log('✓ Admin already exists');
+      }
     }
 
     // seed products
