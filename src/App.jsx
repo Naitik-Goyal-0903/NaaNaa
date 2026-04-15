@@ -1148,7 +1148,7 @@ export default function App() {
     sectionTitle: { fontSize: 28, fontWeight: 800, letterSpacing: "-0.6px", margin: "0 0 8px", color: T.text },
     sectionSub: { color: T.muted, fontSize: 14, margin: "0 0 32px" },
     productCard: { background: T.card, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.border}`, transition: "transform .25s, box-shadow .25s", cursor: "pointer", display: "flex", flexDirection: "column", boxShadow: darkMode ? "0 8px 24px rgba(0,0,0,.24)" : "0 10px 32px rgba(15,23,42,.07)" },
-    productImg: { height: 140, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56, background: `linear-gradient(135deg, ${T.input}, ${T.card})`, padding: "12px" },
+    productImg: { height: 200, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, background: `linear-gradient(135deg, ${T.input}, ${T.card})` },
     productInfo: { padding: 14, flex: 1, display: "flex", flexDirection: "column" },
     tag: (color) => ({ display: "inline-block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", padding: "4px 10px", borderRadius: 999, background: color === "gold" ? (darkMode ? "rgba(94,234,212,.12)" : "rgba(14,165,233,.12)") : "rgba(251,113,133,.12)", color: color === "gold" ? (darkMode ? "#4ade80" : "#0ea5e9") : "#fb7185" }),
     filterBar: { display: "flex", flexWrap: "wrap", gap: 10, padding: "0 0 24px", alignItems: "center" },
@@ -1669,7 +1669,7 @@ export default function App() {
           style={{
             position: "relative",
             width: "100%",
-            aspectRatio: "1/1.2",
+            aspectRatio: "1/1.02",
             background: `linear-gradient(180deg, ${T.input} 0%, ${T.card} 100%)`,
             display: "flex",
             alignItems: "center",
@@ -1693,8 +1693,8 @@ export default function App() {
             touchStartX.current = null;
           }}
         >
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 8 }}>
-            {renderProductMedia(currentPhoto, isMobile ? 110 : 132)}
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 2 }}>
+            {renderProductMedia(currentPhoto, isMobile ? 214 : 228)}
           </div>
           
           {/* Discount Badge */}
