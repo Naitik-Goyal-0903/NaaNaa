@@ -420,7 +420,7 @@ const LoginPage = React.memo(({ T, styles, navigate, loginUser, darkMode, valida
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── PROFILE PAGE (DEFINED OUTSIDE APP - FIXES REMOUNTING ISSUE) ──────────────
 // ═══════════════════════════════════════════════════════════════════════════════
-const ProfilePage = React.memo(({ T, styles, navigate, user, setUser, logoutUser, darkMode, showToast, products = [] }) => {
+const ProfilePage = React.memo(({ T, styles, navigate, user, setUser, logoutUser, darkMode, setDarkMode, showToast, products = [] }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(user || {});
   const [userOrders, setUserOrders] = useState([]);
@@ -558,7 +558,37 @@ const ProfilePage = React.memo(({ T, styles, navigate, user, setUser, logoutUser
               {user?.role === "admin" || user?.email === "admin@naananaa.local" ? "Administrator" : "Customer"}
             </p>
           </div>
-          <button style={{ ...styles.btn(false), padding: "8px 16px", fontSize: 12 }} onClick={() => setIsEditing(true)}>Edit Profile</button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, background: T.input, padding: "8px 16px", borderRadius: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Dark Mode</span>
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                style={{
+                  width: 44,
+                  height: 24,
+                  borderRadius: 12,
+                  border: "none",
+                  background: darkMode ? "#4f46e5" : "#cbd5e1",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "2px",
+                  transition: "background 0.3s",
+                  position: "relative"
+                }}
+              >
+                <div style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  background: "white",
+                  transition: "transform 0.3s",
+                  transform: darkMode ? "translateX(20px)" : "translateX(0)"
+                }} />
+              </button>
+            </div>
+            <button style={{ ...styles.btn(false), padding: "8px 16px", fontSize: 12 }} onClick={() => setIsEditing(true)}>Edit Profile</button>
+          </div>
         </div>
 
         {isEditing ? (
@@ -1080,35 +1110,55 @@ export default function App() {
   ), [products]);
 
   const T = useMemo(() => darkMode ? {
-    bg: "#0f0f13", card: "#1a1a24", cardHover: "#22222e", text: "#f0eee8", muted: "#8a8a95", accent: "#e8c87a", accentDark: "#d4a843", border: "#2a2a35", input: "#16161f", navBg: "rgba(15,15,19,.85)"
+    bg: "#090c12",
+    card: "#11161d",
+    cardHover: "#171d26",
+    text: "#f7f8fa",
+    muted: "#94a3b8",
+    accent: "#0a0a0a",
+    accentDark: "#000000",
+    border: "#243041",
+    input: "#0f141b",
+    navBg: "rgba(9,12,18,.84)"
   } : {
-    bg: "#f5f2eb", card: "#ffffff", cardHover: "#f9f7f2", text: "#1a1a2e", muted: "#6b6b75", accent: "#1a1a2e", accentDark: "#0f0f13", border: "#e0ddd6", input: "#eeebe3", navBg: "rgba(245,242,235,.9)"
+    bg: "linear-gradient(180deg, #faf7f2 0%, #f4efe7 40%, #eef2f7 100%)",
+    card: "#fffdf8",
+    cardHover: "#f7f1e8",
+    text: "#0b0f14",
+    muted: "#667085",
+    accent: "#0a0a0a",
+    accentDark: "#000000",
+    border: "#e7dfd3",
+    input: "#f5efe6",
+    navBg: "rgba(250,247,242,.88)"
   }, [darkMode]);
 
   const styles = useMemo(() => ({
-    app: { fontFamily: "'Playfair Display', serif", background: T.bg, color: T.text, minHeight: "100vh", transition: "background .3s, color .3s" },
+    app: { fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", background: T.bg, color: T.text, minHeight: "100vh", transition: "background .3s, color .3s" },
     nav: { position: "sticky", top: 0, zIndex: 100, background: T.navBg, backdropFilter: "blur(18px)", borderBottom: `1px solid ${T.border}`, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, gap: 16 },
-    logo: { fontSize: 22, fontWeight: 700, color: T.accent, cursor: "pointer", letterSpacing: "-0.5px", fontStyle: "italic" },
-    navLinks: { display: "flex", gap: 24, fontSize: 13, color: T.muted, fontFamily: "'Playfair Display', serif" },
+    logo: { fontSize: 22, fontWeight: 800, color: T.accent, cursor: "pointer", letterSpacing: "-0.5px" },
+    navLinks: { display: "flex", gap: 24, fontSize: 13, color: T.muted, fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif" },
     iconBtn: { background: "none", border: "none", color: T.text, cursor: "pointer", position: "relative", padding: 6, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", transition: "background .2s" },
     badge: { position: "absolute", top: -4, right: -6, background: T.accent, color: darkMode ? "#0f0f13" : "#fff", fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "1px 5px", minWidth: 16, textAlign: "center" },
     heroSection: { position: "relative", height: 420, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", overflow: "hidden" },
-    heroText: { color: "#2c3e50", zIndex: 2, padding: 24 },
+    heroText: { color: T.text, zIndex: 2, padding: 24 },
     heroTitle: { fontSize: "clamp(32px, 6vw, 56px)", fontWeight: 700, margin: 0, letterSpacing: "-1px", lineHeight: 1.1 },
-    heroSub: { fontSize: 18, color: "rgba(255,255,255,.7)", margin: "16px 0 32px", fontStyle: "italic" },
-    btn: (primary = true) => ({ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 30px", borderRadius: 10, border: "none", fontFamily: "'Playfair Display', serif", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .2s", letterSpacing: "0.5px", ...(primary ? { background: T.accent, color: darkMode ? "#0f0f13" : "#fff" } : { background: "transparent", color: T.text, border: `1.5px solid ${T.border}` }) }),
-    sectionTitle: { fontSize: 28, fontWeight: 700, letterSpacing: "-0.5px", margin: "0 0 8px", color: T.text },
-    sectionSub: { color: T.muted, fontSize: 14, margin: "0 0 32px", fontStyle: "italic" },
-    productCard: { background: T.card, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.border}`, transition: "transform .25s, box-shadow .25s", cursor: "pointer", display: "flex", flexDirection: "column" },
-    productImg: { height: 200, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, background: `linear-gradient(135deg, ${T.border}, ${T.card})` },
+    heroSub: { fontSize: 18, color: T.muted, margin: "16px 0 32px" },
+    btn: (primary = true) => ({ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 30px", borderRadius: 14, border: "none", fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .2s", letterSpacing: "0.2px", ...(primary ? { background: "#0a0a0a", color: "#ffffff", boxShadow: darkMode ? "0 10px 24px rgba(0,0,0,.36)" : "0 10px 24px rgba(15,23,42,.18)" } : { background: "transparent", color: T.text, border: `1.5px solid ${T.border}` }) }),
+    sectionTitle: { fontSize: 28, fontWeight: 800, letterSpacing: "-0.6px", margin: "0 0 8px", color: T.text },
+    sectionSub: { color: T.muted, fontSize: 14, margin: "0 0 32px" },
+    productCard: { background: T.card, borderRadius: 18, overflow: "hidden", border: `1px solid ${T.border}`, transition: "transform .25s, box-shadow .25s", cursor: "pointer", display: "flex", flexDirection: "column", boxShadow: darkMode ? "0 10px 32px rgba(0,0,0,.18)" : "0 10px 32px rgba(15,23,42,.07)" },
+    productImg: { height: 200, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, background: `linear-gradient(135deg, ${T.input}, ${T.card})` },
     productInfo: { padding: 18, flex: 1, display: "flex", flexDirection: "column" },
-    tag: (color) => ({ display: "inline-block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", padding: "3px 9px", borderRadius: 20, background: color === "gold" ? (darkMode ? "rgba(232,200,122,.15)" : "rgba(26,26,46,.1)") : "rgba(255,80,80,.15)", color: color === "gold" ? T.accent : "#e85050" }),
+    tag: (color) => ({ display: "inline-block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", padding: "4px 10px", borderRadius: 999, background: color === "gold" ? (darkMode ? "rgba(94,234,212,.12)" : "rgba(14,165,233,.12)") : "rgba(251,113,133,.12)", color: color === "gold" ? T.accent : "#fb7185" }),
     filterBar: { display: "flex", flexWrap: "wrap", gap: 10, padding: "0 0 24px", alignItems: "center" },
     select: { background: T.input, color: T.text, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 14px", fontSize: 13, fontFamily: "'Playfair Display', serif", cursor: "pointer", outline: "none" },
     cartOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 200, display: "flex", justifyContent: isMobile ? "flex-end" : "flex-end", alignItems: isMobile ? "flex-end" : "stretch" },
     cartPanel: { position: "relative", background: T.card, width: isMobile ? "100%" : "min(400px, 95vw)", height: isMobile ? "90vh" : "100%", overflowY: "auto", padding: isMobile ? "20px 16px 12px" : "18px 20px 12px", display: "flex", flexDirection: "column", boxShadow: isMobile ? "0 -8px 40px rgba(0,0,0,.3)" : "-8px 0 40px rgba(0,0,0,.3)", borderRadius: isMobile ? "20px 20px 0 0" : 0 },
-    input: { background: T.input, border: `1px solid ${T.border}`, borderRadius: 10, padding: "12px 16px", color: T.text, fontSize: 14, fontFamily: "'Playfair Display', serif", outline: "none", width: "100%", boxSizing: "border-box" },
+    input: { background: T.input, border: `1px solid ${T.border}`, borderRadius: 14, padding: "12px 16px", color: T.text, fontSize: 14, fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", outline: "none", width: "100%", boxSizing: "border-box" },
     modal: { position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 },
+    sectionShell: { position: "relative", border: `1px solid ${T.border}`, borderRadius: isMobile ? 18 : 26, background: darkMode ? "linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0))" : "linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.7))", boxShadow: darkMode ? "0 18px 50px rgba(0,0,0,.16)" : "0 18px 50px rgba(15,23,42,.06)" },
+    sectionKicker: { fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: T.muted, marginBottom: 8 },
   }), [T, darkMode]);
 
   // Navbar
@@ -1125,21 +1175,35 @@ export default function App() {
       {isMobile && (
         <button
           style={{
-            background: "none",
-            border: "none",
-            color: T.accent,
+            background: `linear-gradient(135deg, ${T.input} 0%, ${T.card} 100%)`,
+            border: `1px solid ${T.border}`,
+            color: T.text,
             cursor: "pointer",
-            fontSize: 24,
+            fontSize: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 40,
-            height: 40,
-            borderRadius: 8
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            boxShadow: "0 4px 14px rgba(0,0,0,.08)",
+            touchAction: "manipulation"
           }}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
-          {mobileMenuOpen ? "Close" : "Menu"}
+          {mobileMenuOpen ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round">
+              <path d="M6 6l12 12" />
+              <path d="M18 6L6 18" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 7h16" />
+              <path d="M4 12h16" />
+              <path d="M4 17h10" />
+            </svg>
+          )}
         </button>
       )}
 
@@ -1438,6 +1502,19 @@ export default function App() {
   // Home
   const HomePage = () => {
     const currentHero = heroTemplates[currentHeroIndex] || HERO_TEMPLATES[0];
+    const mobileRailStyle = {
+      display: "grid",
+      gridAutoFlow: isMobile ? "column" : "row",
+      gridAutoColumns: isMobile ? "78vw" : "unset",
+      gridTemplateColumns: isMobile ? "none" : "repeat(auto-fill, minmax(240px, 1fr))",
+      gap: isMobile ? 12 : 20,
+      overflowX: isMobile ? "auto" : "visible",
+      overflowY: "hidden",
+      paddingBottom: isMobile ? 10 : 0,
+      paddingTop: isMobile ? 4 : 0,
+      scrollSnapType: isMobile ? "x mandatory" : "none",
+      WebkitOverflowScrolling: "touch"
+    };
 
     return (
       <div style={{ background: T.bg }}>
@@ -1465,8 +1542,12 @@ export default function App() {
 
         {/* Recently Added Section */}
         <div style={{ padding: isMobile ? "12px 14px" : "56px 24px", maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ ...styles.sectionShell, padding: isMobile ? 14 : 22 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 8 : 12, gap: 12 }}>
-            <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 20 : 28, margin: 0 }}>New Arrivals</h2>
+            <div>
+              <div style={styles.sectionKicker}>Fresh picks</div>
+              <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 20 : 28, margin: 0 }}>New Arrivals</h2>
+            </div>
             <button
               onClick={() => {
                 setCatalogFilters(f => ({ ...f, category: "Women's" }));
@@ -1482,19 +1563,28 @@ export default function App() {
               See all {isMobile ? "→" : "?"}
             </button>
           </div>
-          <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "4px 0 12px" : "6px 0 20px" }}>Check out our latest arrivals</p>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 8 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
-            {recentProducts.slice(0, isMobile ? 6 : recentProducts.length).map(p => <ProductCard key={p.id} product={p} />)}
+          <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "4px 0 12px" : "6px 0 20px" }}>Tap and swipe through a cleaner, more breathable product rail.</p>
+          <div style={{ ...mobileRailStyle, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
+            {recentProducts.slice(0, isMobile ? 6 : recentProducts.length).map(p => (
+              <div key={p.id} style={{ width: isMobile ? "78vw" : "auto", scrollSnapAlign: isMobile ? "start" : "initial", flex: isMobile ? "0 0 auto" : "initial" }}>
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
           </div>
         </div>
 
         {/* Category Sections */}
         {homeCollections.map(({ category, items: categoryItems }) => {
           return (
-            <div key={category} style={{ padding: isMobile ? "12px 0" : "40px 24px", background: T.card, borderTop: `1px solid ${T.border}`, marginTop: isMobile ? 8 : 40 }}>
+            <div key={category} style={{ padding: isMobile ? "12px 0" : "40px 24px", marginTop: isMobile ? 8 : 40 }}>
               <div style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "0 14px" : 0 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                  <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 18 : 28, margin: 0 }}>{category}</h2>
+                <div style={{ ...styles.sectionShell, padding: isMobile ? 14 : 22 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12 }}>
+                  <div>
+                    <div style={styles.sectionKicker}>Curated drop</div>
+                    <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 18 : 28, margin: 0 }}>{category}</h2>
+                  </div>
                   <button
                     onClick={() => {
                       setCatalogFilters(f => ({ ...f, category: category }));
@@ -1510,8 +1600,13 @@ export default function App() {
                     See all {isMobile ? "→" : "?"}
                   </button>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 8 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
-                  {categoryItems.slice(0, isMobile ? 8 : categoryItems.length).map(p => <ProductCard key={p.id} product={p} />)}
+                <div style={{ ...mobileRailStyle, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
+                  {categoryItems.slice(0, isMobile ? 8 : categoryItems.length).map(p => (
+                    <div key={p.id} style={{ width: isMobile ? "78vw" : "auto", scrollSnapAlign: isMobile ? "start" : "initial", flex: isMobile ? "0 0 auto" : "initial" }}>
+                      <ProductCard product={p} />
+                    </div>
+                  ))}
+                </div>
                 </div>
               </div>
             </div>
@@ -1561,7 +1656,7 @@ export default function App() {
     return (
       <div style={{
         ...styles.productCard,
-        borderRadius: isMobile ? 10 : 14,
+        borderRadius: isMobile ? 14 : 18,
         padding: 0,
         overflow: "hidden",
         display: "flex",
@@ -1575,7 +1670,7 @@ export default function App() {
             position: "relative",
             width: "100%",
             aspectRatio: "1/1.2",
-            background: T.input,
+            background: `linear-gradient(180deg, ${T.input} 0%, ${T.card} 100%)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1598,7 +1693,7 @@ export default function App() {
             touchStartX.current = null;
           }}
         >
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 8 }}>
             {renderProductMedia(currentPhoto, isMobile ? 110 : 132)}
           </div>
           
@@ -1664,7 +1759,7 @@ export default function App() {
           cursor: "pointer"
         }} onClick={() => navigate("product", product)}>
           <div style={{ fontSize: isMobile ? 10 : 11, color: T.muted, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{product.brand}</div>
-          <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 600, margin: "4px 0 6px", flex: 1, lineHeight: 1.3, display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: isMobile ? 2 : 2, overflow: "hidden" }}>{product.name}</div>
+          <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, margin: "4px 0 6px", flex: 1, lineHeight: 1.35, display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: isMobile ? 2 : 2, overflow: "hidden" }}>{product.name}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}><StarRating rating={product.rating} size={isMobile ? 11 : 13} /><span style={{ fontSize: isMobile ? 10 : 12, color: T.muted }}>({product.reviews})</span></div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <span style={{ fontSize: isMobile ? 15 : 17, fontWeight: 700, color: T.accent }}>{formatPrice(product.price)}</span>
@@ -1673,8 +1768,8 @@ export default function App() {
         </div>
 
         {/* Add to Bag Button */}
-        <div style={{ padding: isMobile ? "8px 12px" : "10px 18px" }}>
-          <button style={{ ...styles.btn(true), width: "100%", padding: isMobile ? "10px 0" : "11px 0", justifyContent: "center", fontSize: isMobile ? 12 : 13, fontWeight: 600, borderRadius: isMobile ? 8 : 10 }} onClick={(e) => { e.stopPropagation(); addToCart(product); }}>
+        <div style={{ padding: isMobile ? "8px 12px 12px" : "10px 18px 16px" }}>
+          <button style={{ ...styles.btn(true), width: "100%", padding: isMobile ? "10px 0" : "11px 0", justifyContent: "center", fontSize: isMobile ? 12 : 13, fontWeight: 700, borderRadius: 12 }} onClick={(e) => { e.stopPropagation(); addToCart(product); }}>
             {isMobile ? "Add" : "Add to Bag"}
           </button>
         </div>
@@ -3507,7 +3602,7 @@ export default function App() {
         {page === "checkout" && <CheckoutPage />}
         {page === "login" && !loggedIn && <LoginPage T={T} styles={styles} navigate={navigate} loginUser={loginUser} darkMode={darkMode} validateEmail={validateEmail} validatePhone={validatePhone} />}
         {page === "signup" && <SignupPage T={T} styles={styles} navigate={navigate} signupUser={signupUser} showToast={showToast} darkMode={darkMode} />}
-        {page === "profile" && loggedIn && <ProfilePage T={T} styles={styles} navigate={navigate} user={user} setUser={setUser} logoutUser={logoutUser} darkMode={darkMode} showToast={showToast} products={products} />}
+        {page === "profile" && loggedIn && <ProfilePage T={T} styles={styles} navigate={navigate} user={user} setUser={setUser} logoutUser={logoutUser} darkMode={darkMode} setDarkMode={setDarkMode} showToast={showToast} products={products} />}
         {page === "admin" && loggedIn && (user?.role === "admin" || user?.email === "admin@naananaa.local") && <AdminPage />}
       </main>
       <Toast show={toast.show} message={toast.msg} onClose={() => setToast({ show: false, msg: "" })} />
