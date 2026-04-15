@@ -1115,10 +1115,10 @@ export default function App() {
   const Navbar = () => (
     <nav style={{
       ...styles.nav,
-      padding: isMobile ? "12px 14px" : "16px 24px",
+      padding: isMobile ? "10px 10px" : "16px 24px",
       justifyContent: isMobile ? "space-between" : "space-around",
       alignItems: "center",
-      gap: isMobile ? 8 : 16,
+      gap: isMobile ? 4 : 16,
       flexWrap: isMobile ? "nowrap" : "wrap"
     }}>
       {/* Mobile Hamburger Menu - Only on mobile */}
@@ -1241,7 +1241,6 @@ export default function App() {
             </button>
           </>
         )}
-        <button style={{ ...styles.btn(false), padding: "6px 12px", fontSize: 12 }} onClick={() => navigate("offers")}>Offers</button>
         <button style={{
           ...styles.iconBtn,
           width: isMobile ? 40 : "auto",
@@ -1284,11 +1283,11 @@ export default function App() {
           right: 0,
           background: T.card,
           borderBottom: `1px solid ${T.border}`,
-          padding: "16px 14px",
+          padding: "10px 14px",
           zIndex: 100,
           boxShadow: "0 8px 16px rgba(0,0,0,.1)"
         }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {["All", "Men's", "Women's", "Accessories"].map(category => (
               <button
                 key={category}
@@ -1302,10 +1301,10 @@ export default function App() {
                   background: catalogFilters.category === category ? T.accent : T.input,
                   color: catalogFilters.category === category ? (darkMode ? "#0f0f13" : "#fff") : T.text,
                   border: "none",
-                  padding: "12px 14px",
+                  padding: "10px 12px",
                   borderRadius: 8,
                   cursor: "pointer",
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: catalogFilters.category === category ? 700 : 500,
                   transition: "all .2s",
                   textAlign: "left"
@@ -1464,85 +1463,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* Categories + Offers */}
-        <div style={{ padding: isMobile ? "16px 0" : "44px 24px", maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 12 : 18, padding: isMobile ? "0 14px" : 0 }}>
-            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: isMobile ? 12 : 18, padding: isMobile ? 14 : 18 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 10 : 12 }}>
-                <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 18 : 24, margin: 0 }}>Categories</h2>
-                {!isMobile && <button
-                  style={{ ...styles.btn(false), fontSize: 13, padding: "8px 16px" }}
-                  onClick={() => navigate("catalog")}
-                >
-                  Browse All
-                </button>}
-              </div>
-              <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "6px 0 12px" : "6px 0 16px" }}>Jump straight into the collection you want</p>
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: isMobile ? 10 : 12 }}>
-                {CATEGORIES.filter((category) => category !== "All").map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => {
-                      setCatalogFilters((f) => ({ ...f, category }));
-                      navigate("catalog");
-                    }}
-                    style={{
-                      padding: isMobile ? "14px 10px" : "18px 14px",
-                      borderRadius: isMobile ? 10 : 14,
-                      border: `1px solid ${T.border}`,
-                      background: T.input,
-                      color: T.text,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      textAlign: "center",
-                      fontSize: isMobile ? 13 : 16,
-                      transition: "all .2s"
-                    }}
-                    onMouseEnter={(e) => !isMobile && (e.target.style.background = T.accent) && (e.target.style.color = darkMode ? "#0f0f13" : "#fff")}
-                    onMouseLeave={(e) => !isMobile && (e.target.style.background = T.input) && (e.target.style.color = T.text)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: isMobile ? 12 : 18, padding: isMobile ? 14 : 18 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 10 : 12 }}>
-                <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 18 : 24, margin: 0 }}>Offers</h2>
-                {!isMobile && <button
-                  style={{ ...styles.btn(false), fontSize: 13, padding: "8px 16px" }}
-                  onClick={() => navigate("offers")}
-                >
-                  View Offers
-                </button>}
-              </div>
-              <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "6px 0 12px" : "6px 0 16px" }}>Buy 1 + Get 1 combos</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: isMobile ? 10 : 12 }}>
-                {activeOffers.length === 0 ? (
-                  <div style={{ padding: isMobile ? 12 : 18, borderRadius: isMobile ? 10 : 14, border: `1px solid ${T.border}`, color: T.muted, background: T.input, fontSize: isMobile ? 13 : 14 }}>No active offers right now.</div>
-                ) : activeOffers.slice(0, isMobile ? 2 : 3).map((offer) => (
-                  <div key={offer.id} style={{ display: "grid", gridTemplateColumns: isMobile ? "70px 1fr" : "88px 1fr", gap: isMobile ? 10 : 14, alignItems: "center", borderRadius: isMobile ? 10 : 14, border: `1px solid ${T.border}`, background: T.input, padding: isMobile ? 10 : 12 }}>
-                    <div style={{ width: isMobile ? 70 : 88, height: isMobile ? 70 : 88, borderRadius: isMobile ? 10 : 14, background: T.card, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
-                      {renderProductMedia(offer.image || offer.buyProduct.image, isMobile ? 60 : 78)}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 700, color: T.accent, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
-                        {offer.title?.slice(0, 10) || "OFFER"}
-                      </div>
-                      <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, marginBottom: 4, lineHeight: 1.2, display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 1, overflow: "hidden" }}>{offer.buyProduct.name}</div>
-                      <div style={{ fontSize: isMobile ? 11 : 12, color: T.muted }}>+ Get {offer.getProduct.name}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Recently Added Section */}
-        <div style={{ padding: isMobile ? "18px 14px" : "56px 24px", maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 10 : 12, gap: 12 }}>
+        <div style={{ padding: isMobile ? "12px 14px" : "56px 24px", maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 8 : 12, gap: 12 }}>
             <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 20 : 28, margin: 0 }}>New Arrivals</h2>
             <button
               onClick={() => {
@@ -1559,8 +1482,8 @@ export default function App() {
               See all {isMobile ? "→" : "?"}
             </button>
           </div>
-          <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "6px 0 14px" : "6px 0 20px" }}>Check out our latest arrivals</p>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
+          <p style={{ ...styles.sectionSub, fontSize: isMobile ? 12 : 14, margin: isMobile ? "4px 0 12px" : "6px 0 20px" }}>Check out our latest arrivals</p>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 8 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
             {recentProducts.slice(0, isMobile ? 6 : recentProducts.length).map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
@@ -1568,10 +1491,10 @@ export default function App() {
         {/* Category Sections */}
         {homeCollections.map(({ category, items: categoryItems }) => {
           return (
-            <div key={category} style={{ padding: isMobile ? "20px 0" : "40px 24px", background: T.card, borderTop: `1px solid ${T.border}`, marginTop: isMobile ? 12 : 40 }}>
+            <div key={category} style={{ padding: isMobile ? "12px 0" : "40px 24px", background: T.card, borderTop: `1px solid ${T.border}`, marginTop: isMobile ? 8 : 40 }}>
               <div style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "0 14px" : 0 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                  <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 20 : 28, margin: 0 }}>{category}</h2>
+                  <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? 18 : 28, margin: 0 }}>{category}</h2>
                   <button
                     onClick={() => {
                       setCatalogFilters(f => ({ ...f, category: category }));
@@ -1587,7 +1510,7 @@ export default function App() {
                     See all {isMobile ? "→" : "?"}
                   </button>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 12 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: isMobile ? 8 : 20, filter: isProductsLoading ? "blur(6px)" : "blur(0)", opacity: isProductsLoading ? 0.7 : 1, transition: "filter 0.4s ease, opacity 0.4s ease", pointerEvents: isProductsLoading ? "none" : "auto" }}>
                   {categoryItems.slice(0, isMobile ? 8 : categoryItems.length).map(p => <ProductCard key={p.id} product={p} />)}
                 </div>
               </div>
