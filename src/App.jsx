@@ -759,7 +759,7 @@ export default function App() {
   const [offers, setOffers] = useState([]);
   const [catalogFilters, setCatalogFilters] = useState({ category: "All", priceMax: 100000, sort: "popular" });
   const [viewMode, setViewMode] = useState("grid");
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [clothingRequest, setClothingRequest] = useState("");
   const [requestStatus, setRequestStatus] = useState(null);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
@@ -1110,16 +1110,16 @@ export default function App() {
   ), [products]);
 
   const T = useMemo(() => darkMode ? {
-    bg: "#090c12",
-    card: "#11161d",
-    cardHover: "#171d26",
-    text: "#f7f8fa",
+    bg: "linear-gradient(180deg, #16192b 0%, #1a1f2e 50%, #16192b 100%)",
+    card: "#1e2333",
+    cardHover: "#252d3d",
+    text: "#e2e8f0",
     muted: "#94a3b8",
-    accent: "#0a0a0a",
-    accentDark: "#000000",
-    border: "#243041",
-    input: "#0f141b",
-    navBg: "rgba(9,12,18,.84)"
+    accent: "#64748b",
+    accentDark: "#94a3b8",
+    border: "#2d3748",
+    input: "#141821",
+    navBg: "rgba(22,25,43,.92)"
   } : {
     bg: "linear-gradient(180deg, #faf7f2 0%, #f4efe7 40%, #eef2f7 100%)",
     card: "#fffdf8",
@@ -1134,30 +1134,30 @@ export default function App() {
   }, [darkMode]);
 
   const styles = useMemo(() => ({
-    app: { fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", background: T.bg, color: T.text, minHeight: "100vh", transition: "background .3s, color .3s" },
+    app: { fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", background: T.bg, color: T.text, minHeight: "100vh", transition: "background .3s, color .3s", WebkitUserSelect: "none", userSelect: "none" },
     nav: { position: "sticky", top: 0, zIndex: 100, background: T.navBg, backdropFilter: "blur(18px)", borderBottom: `1px solid ${T.border}`, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, gap: 16 },
-    logo: { fontSize: 22, fontWeight: 800, color: T.accent, cursor: "pointer", letterSpacing: "-0.5px" },
+    logo: { fontSize: 22, fontWeight: 800, color: darkMode ? "#e2e8f0" : T.accent, cursor: "pointer", letterSpacing: "-0.5px" },
     navLinks: { display: "flex", gap: 24, fontSize: 13, color: T.muted, fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif" },
     iconBtn: { background: "none", border: "none", color: T.text, cursor: "pointer", position: "relative", padding: 6, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", transition: "background .2s" },
-    badge: { position: "absolute", top: -4, right: -6, background: T.accent, color: darkMode ? "#0f0f13" : "#fff", fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "1px 5px", minWidth: 16, textAlign: "center" },
+    badge: { position: "absolute", top: -4, right: -6, background: darkMode ? "#4ade80" : T.accent, color: darkMode ? "#141821" : "#fff", fontSize: 10, fontWeight: 700, borderRadius: 8, padding: "1px 5px", minWidth: 16, textAlign: "center" },
     heroSection: { position: "relative", height: 420, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", overflow: "hidden" },
     heroText: { color: T.text, zIndex: 2, padding: 24 },
     heroTitle: { fontSize: "clamp(32px, 6vw, 56px)", fontWeight: 700, margin: 0, letterSpacing: "-1px", lineHeight: 1.1 },
     heroSub: { fontSize: 18, color: T.muted, margin: "16px 0 32px" },
-    btn: (primary = true) => ({ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 30px", borderRadius: 14, border: "none", fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .2s", letterSpacing: "0.2px", ...(primary ? { background: "#0a0a0a", color: "#ffffff", boxShadow: darkMode ? "0 10px 24px rgba(0,0,0,.36)" : "0 10px 24px rgba(15,23,42,.18)" } : { background: "transparent", color: T.text, border: `1.5px solid ${T.border}` }) }),
+    btn: (primary = true) => ({ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 30px", borderRadius: 14, border: "none", fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .2s", letterSpacing: "0.2px", ...(primary ? { background: darkMode ? "linear-gradient(135deg, #64748b 0%, #475569 100%)" : "#0a0a0a", color: darkMode ? "#ffffff" : "#ffffff", boxShadow: darkMode ? "0 10px 24px rgba(100,116,139,.24)" : "0 10px 24px rgba(15,23,42,.18)", border: darkMode ? "1px solid rgba(148,163,184,.2)" : "none" } : { background: darkMode ? "transparent" : "transparent", color: T.text, border: `1.5px solid ${T.border}`, boxShadow: darkMode ? "0 4px 12px rgba(0,0,0,.2)" : "none" }) }),
     sectionTitle: { fontSize: 28, fontWeight: 800, letterSpacing: "-0.6px", margin: "0 0 8px", color: T.text },
     sectionSub: { color: T.muted, fontSize: 14, margin: "0 0 32px" },
-    productCard: { background: T.card, borderRadius: 18, overflow: "hidden", border: `1px solid ${T.border}`, transition: "transform .25s, box-shadow .25s", cursor: "pointer", display: "flex", flexDirection: "column", boxShadow: darkMode ? "0 10px 32px rgba(0,0,0,.18)" : "0 10px 32px rgba(15,23,42,.07)" },
-    productImg: { height: 200, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, background: `linear-gradient(135deg, ${T.input}, ${T.card})` },
-    productInfo: { padding: 18, flex: 1, display: "flex", flexDirection: "column" },
-    tag: (color) => ({ display: "inline-block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", padding: "4px 10px", borderRadius: 999, background: color === "gold" ? (darkMode ? "rgba(94,234,212,.12)" : "rgba(14,165,233,.12)") : "rgba(251,113,133,.12)", color: color === "gold" ? T.accent : "#fb7185" }),
+    productCard: { background: T.card, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.border}`, transition: "transform .25s, box-shadow .25s", cursor: "pointer", display: "flex", flexDirection: "column", boxShadow: darkMode ? "0 8px 24px rgba(0,0,0,.24)" : "0 10px 32px rgba(15,23,42,.07)" },
+    productImg: { height: 140, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56, background: `linear-gradient(135deg, ${T.input}, ${T.card})`, padding: "12px" },
+    productInfo: { padding: 14, flex: 1, display: "flex", flexDirection: "column" },
+    tag: (color) => ({ display: "inline-block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", padding: "4px 10px", borderRadius: 999, background: color === "gold" ? (darkMode ? "rgba(94,234,212,.12)" : "rgba(14,165,233,.12)") : "rgba(251,113,133,.12)", color: color === "gold" ? (darkMode ? "#4ade80" : "#0ea5e9") : "#fb7185" }),
     filterBar: { display: "flex", flexWrap: "wrap", gap: 10, padding: "0 0 24px", alignItems: "center" },
     select: { background: T.input, color: T.text, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 14px", fontSize: 13, fontFamily: "'Playfair Display', serif", cursor: "pointer", outline: "none" },
     cartOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 200, display: "flex", justifyContent: isMobile ? "flex-end" : "flex-end", alignItems: isMobile ? "flex-end" : "stretch" },
     cartPanel: { position: "relative", background: T.card, width: isMobile ? "100%" : "min(400px, 95vw)", height: isMobile ? "90vh" : "100%", overflowY: "auto", padding: isMobile ? "20px 16px 12px" : "18px 20px 12px", display: "flex", flexDirection: "column", boxShadow: isMobile ? "0 -8px 40px rgba(0,0,0,.3)" : "-8px 0 40px rgba(0,0,0,.3)", borderRadius: isMobile ? "20px 20px 0 0" : 0 },
-    input: { background: T.input, border: `1px solid ${T.border}`, borderRadius: 14, padding: "12px 16px", color: T.text, fontSize: 14, fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", outline: "none", width: "100%", boxSizing: "border-box" },
+    input: { background: T.input, border: `1px solid ${T.border}`, borderRadius: 14, padding: "12px 16px", color: T.text, fontSize: 14, fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif", outline: "none", width: "100%", boxSizing: "border-box", WebkitUserSelect: "text", userSelect: "text" },
     modal: { position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 },
-    sectionShell: { position: "relative", border: `1px solid ${T.border}`, borderRadius: isMobile ? 18 : 26, background: darkMode ? "linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0))" : "linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.7))", boxShadow: darkMode ? "0 18px 50px rgba(0,0,0,.16)" : "0 18px 50px rgba(15,23,42,.06)" },
+    sectionShell: { position: "relative", border: `1px solid ${T.border}`, borderRadius: isMobile ? 18 : 26, background: darkMode ? "linear-gradient(180deg, rgba(94,109,156,.06), rgba(94,109,156,.02))" : "linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.7))", boxShadow: darkMode ? "0 18px 50px rgba(0,0,0,.32)" : "0 18px 50px rgba(15,23,42,.06)" },
     sectionKicker: { fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: T.muted, marginBottom: 8 },
   }), [T, darkMode]);
 
